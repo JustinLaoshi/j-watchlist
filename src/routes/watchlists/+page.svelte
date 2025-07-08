@@ -13,6 +13,7 @@
 	let showAddSymbolDropdown = false;
 	let isSymbolDropdownClosing = false;
 	let isInitialLoad = true;
+	let isWatchlistSelectorOpen = false;
 
 	// Subscribe to stores.
 	$: ({ user } = $sessionStore);
@@ -48,10 +49,16 @@
 	}
 
 	function handleAddWatchlist() {
+		// Close others
+		showAddSymbolDropdown = false;
+		isWatchlistSelectorOpen = false;
 		showAddWatchlistModal = !showAddWatchlistModal;
 	}
 
 	function handleAddSymbol() {
+		// Close others
+		showAddWatchlistModal = false;
+		isWatchlistSelectorOpen = false;
 		if (showAddSymbolDropdown) {
 			isSymbolDropdownClosing = true;
 			showAddSymbolDropdown = false;
@@ -61,6 +68,14 @@
 		} else if (!isSymbolDropdownClosing) {
 			showAddSymbolDropdown = true;
 		}
+	}
+
+	function handleWatchlistSelectorOpenChange(open: boolean) {
+		if (open) {
+			showAddWatchlistModal = false;
+			showAddSymbolDropdown = false;
+		}
+		isWatchlistSelectorOpen = open;
 	}
 
 	function closeModals() {
@@ -161,6 +176,8 @@
 					<WatchlistSelector
 						{watchlists}
 						selectedWatchlistName={$watchlistsStore.selectedWatchlistName}
+						isOpen={isWatchlistSelectorOpen}
+						on:openChange={e => handleWatchlistSelectorOpenChange(e.detail.isOpen)}
 						on:select={(event) => watchlistsStore.selectWatchlist(event.detail.watchlistName)}
 					/>
 				</div>

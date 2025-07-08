@@ -7,12 +7,13 @@
 	export let watchlists: Watchlist[] = [];
 	export let selectedWatchlistName: string | null = null;
 	export let placeholder = 'Select a watchlist...';
+	export let isOpen: boolean = false;
 
 	const dispatch = createEventDispatcher<{
 		select: { watchlistName: string };
+		openChange: { isOpen: boolean };
 	}>();
 
-	let isOpen = false;
 	let searchTerm = '';
 	let filteredWatchlists: Watchlist[] = [];
 
@@ -21,15 +22,20 @@
 		watchlist.name.toLowerCase().includes(searchTerm.toLowerCase())
 	);
 
+	// Sort filtered watchlists: exclude selected, then sort alphabetically.
+	$: sortedWatchlists = filteredWatchlists
+		.filter(w => w.name !== selectedWatchlistName)
+		.sort((a, b) => a.name.localeCompare(b.name));
+
 	function handleSelect(watchlistName: string) {
 		dispatch('select', { watchlistName });
-		isOpen = false;
+		dispatch('openChange', { isOpen: false });
 		searchTerm = '';
 	}
 
 	function handleToggle() {
-		isOpen = !isOpen;
-		if (isOpen) {
+		dispatch('openChange', { isOpen: !isOpen });
+		if (!isOpen) {
 			searchTerm = '';
 		}
 	}
@@ -38,7 +44,7 @@
 		if (!browser) return;
 		const target = event.target as HTMLElement;
 		if (!target.closest('.watchlist-selector')) {
-			isOpen = false;
+			dispatch('openChange', { isOpen: false });
 			searchTerm = '';
 		}
 	}
@@ -55,7 +61,7 @@
 	function handleKeydown(event: KeyboardEvent) {
 		if (!browser) return;
 		if (event.key === 'Escape') {
-			isOpen = false;
+			dispatch('openChange', { isOpen: false });
 			searchTerm = '';
 		}
 	}
@@ -122,8 +128,8 @@
 			</div>
 
 			<!-- Watchlist options -->
-			{#if filteredWatchlists.length > 0}
-				{#each filteredWatchlists as watchlist, index}
+			{#if sortedWatchlists.length > 0}
+				{#each sortedWatchlists as watchlist, index}
 					<button
 						type="button"
 						on:click={() => handleSelect(watchlist.name)}

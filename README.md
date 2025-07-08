@@ -1,10 +1,13 @@
 # J-Watchlist
 
-Basic stock watchlist using tastytrade's and polygon.io's APIs. I implemented both bonuses of streaming market data and an additional symbol chart view.
+Basic stock watchlist using tastytrade's and polygon.io's APIs. I implemented both bonuses of streaming market data and an additional symbol chart view. For the chart I used plotly.js.
 
 ## Guide
 First, make sure you have a tastytrade sandbox user and account.
-To run, clone this repo and run:
+
+You can use the live deployed app here: https://j-watchlist.vercel.app/login
+
+Otherwise to run locally, clone this repo and run:
 ```
 npm i
 npm run dev -- --open
