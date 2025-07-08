@@ -16,7 +16,7 @@ export interface MarketDataState {
 	isStreaming: boolean;
 }
 
-// Create the market data store
+// Create the market data store.
 const createMarketDataStore = () => {
 	const { subscribe, set, update } = writable<MarketDataState>({
 		quotes: new Map(),
@@ -31,7 +31,7 @@ const createMarketDataStore = () => {
 	return {
 		subscribe,
 
-		// Load quotes for symbols
+		// Load quotes for symbols.
 		async loadQuotes(symbols: string[]) {
 			if (symbols.length === 0) return;
 
@@ -57,7 +57,7 @@ const createMarketDataStore = () => {
 			}
 		},
 
-		// Load candle data for a symbol
+		// Load candle data for a symbol.
 		async loadCandles(symbol: string, interval: string = '1d', limit: number = 100) {
 			update((state) => ({ ...state, isLoading: true, error: null }));
 
@@ -79,7 +79,7 @@ const createMarketDataStore = () => {
 			}
 		},
 
-		// Start real-time streaming
+		// Start real-time streaming.
 		async startStreaming(symbols: string[]) {
 			if (symbols.length === 0) return;
 
@@ -89,14 +89,14 @@ const createMarketDataStore = () => {
 				return;
 			}
 
-			// Stop existing stream if any
+			// Stop existing stream if any.
 			this.stopStreaming();
 
 			try {
-				// Create new stream
+				// Create new stream.
 				stream = new MarketDataStream(token);
 
-				// Initialize symbol data from existing quotes
+				// Initialize symbol data from existing quotes.
 				subscribe((state) => {
 					symbols.forEach((symbol) => {
 						const existingQuote = state.quotes.get(symbol);
@@ -106,7 +106,7 @@ const createMarketDataStore = () => {
 					});
 				})();
 
-				// Restore original quote update logic: update immediately on each message
+				// Restore original quote update logic: update immediately on each message.
 				stream.onMessage((quote: SymbolQuote) => {
 					update((state) => {
 						const newQuotes = new Map(state.quotes);
@@ -115,13 +115,13 @@ const createMarketDataStore = () => {
 					});
 				});
 
-				// Handle candle updates
+				// Handle candle updates.
 				stream.onCandleMessage((candle: CandleData & { symbol: string }) => {
 					update((state) => {
 						const newCandles = new Map(state.candles);
 						const symbolCandles = newCandles.get(candle.symbol) || [];
 
-						// Add new candle or update existing one
+						// Add new candle or update existing one.
 						const existingIndex = symbolCandles.findIndex((c) => c.timestamp === candle.timestamp);
 						if (existingIndex >= 0) {
 							symbolCandles[existingIndex] = candle;
@@ -129,7 +129,7 @@ const createMarketDataStore = () => {
 							symbolCandles.push(candle);
 						}
 
-						// Sort by timestamp and keep only last 100 candles
+						// Sort by timestamp and keep only last 100 candles.
 						symbolCandles.sort(
 							(a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
 						);
@@ -146,16 +146,16 @@ const createMarketDataStore = () => {
 				update((state) => ({ ...state, isStreaming: true }));
 			} catch (error) {
 				console.error('Failed to start streaming:', error);
-				// Fall back to polling if streaming fails
+				// Fall back to polling if streaming fails.
 				this.startPolling(symbols);
 			}
 		},
 
-		// Fallback polling mechanism
+		// Fallback polling mechanism.
 		startPolling(symbols: string[]) {
 			if (symbols.length === 0) return;
 
-			// Poll every 5 seconds as fallback
+			// Poll every 5 seconds as fallback.
 			const pollInterval = setInterval(async () => {
 				try {
 					await this.loadQuotes(symbols);
@@ -164,11 +164,11 @@ const createMarketDataStore = () => {
 				}
 			}, 5000);
 
-			// Store the interval ID for cleanup
+			// Store the interval ID for cleanup.
 			(this as any).pollInterval = pollInterval;
 		},
 
-		// Stop polling
+		// Stop polling.
 		stopPolling() {
 			if ((this as any).pollInterval) {
 				clearInterval((this as any).pollInterval);
@@ -176,7 +176,7 @@ const createMarketDataStore = () => {
 			}
 		},
 
-		// Stop real-time streaming
+		// Stop real-time streaming.
 		stopStreaming() {
 			if (stream) {
 				stream.disconnect();
@@ -186,14 +186,14 @@ const createMarketDataStore = () => {
 			update((state) => ({ ...state, isStreaming: false }));
 		},
 
-		// Update streaming symbols
+		// Update streaming symbols.
 		updateStreamingSymbols(symbols: string[]) {
 			if (stream) {
 				stream.updateSymbols(symbols);
 			}
 		},
 
-		// Start candle streaming for a specific symbol
+		// Start candle streaming for a specific symbol.
 		async startCandleStreaming(symbol: string, period: string = '1m') {
 			if (!stream) {
 				console.error('Stream not initialized');
@@ -207,12 +207,12 @@ const createMarketDataStore = () => {
 			}
 		},
 
-		// Clear error
+		// Clear error.
 		clearError() {
 			update((state) => ({ ...state, error: null }));
 		},
 
-		// Get quote for a specific symbol
+		// Get quote for a specific symbol.
 		getQuote(symbol: string): SymbolQuote | undefined {
 			let quote: SymbolQuote | undefined;
 			subscribe((state) => {
@@ -221,7 +221,7 @@ const createMarketDataStore = () => {
 			return quote;
 		},
 
-		// Get candles for a specific symbol
+		// Get candles for a specific symbol.
 		getCandles(symbol: string): CandleData[] | undefined {
 			let candles: CandleData[] | undefined;
 			subscribe((state) => {
@@ -230,7 +230,7 @@ const createMarketDataStore = () => {
 			return candles;
 		},
 
-		// Clear all data
+		// Clear all data.
 		clear() {
 			set({
 				quotes: new Map(),
@@ -245,19 +245,19 @@ const createMarketDataStore = () => {
 
 export const marketDataStore = createMarketDataStore();
 
-// Derived store for quotes as array
+// Derived store for quotes as array.
 export const quotesArray = derived(marketDataStore, ($marketDataStore) => {
 	return Array.from($marketDataStore.quotes.values());
 });
 
-// Auto-load quotes when symbols change
+// Auto-load quotes when symbols change.
 allSymbols.subscribe((symbols) => {
 	if (symbols.length > 0) {
 		marketDataStore.loadQuotes(symbols);
 	}
 });
 
-// Auto-start streaming when symbols change
+// Auto-start streaming when symbols change.
 allSymbols.subscribe((symbols) => {
 	if (symbols.length > 0) {
 		marketDataStore.startStreaming(symbols).catch((error) => {

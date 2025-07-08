@@ -13,11 +13,11 @@
 	let isLoading = false;
 	let removingSymbol: string | null = null;
 
-	// Subscribe to market data
+	// Subscribe to market data.
 	$: quotes = $marketDataStore.quotes;
 
-	// Throttle: update displayed quotes for each symbol every 2 seconds
-	const throttleInterval = 2000; // ms
+	// Throttle: update displayed quotes for each symbol every 2 seconds.
+	const throttleInterval = 2000; // ms.
 	const debouncedQuotes = writable(new Map());
 	let throttleTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -32,14 +32,14 @@
 		});
 	}
 
-	// Start throttling only once on mount
+	// Start throttling only once on mount.
 	onMount(() => {
-		updateDebouncedQuotes(); // initial
+		updateDebouncedQuotes(); // initial.
 		throttleTimer = setInterval(updateDebouncedQuotes, throttleInterval);
 	});
 
-	// When symbols change, update immediately (but do not restart timer)
-	$: (watchlist.symbols, updateDebouncedQuotes());
+	// When symbols change, update immediately (but do not restart timer).
+	$: updateDebouncedQuotes();
 
 	onDestroy(() => {
 		if (throttleTimer) clearInterval(throttleTimer);
@@ -90,7 +90,7 @@
 
 		const url = `/symbol/${symbol.trim()}`;
 
-		// Try using window.location as a fallback
+		// Try using window.location as a fallback.
 		try {
 			goto(url);
 		} catch (error) {
@@ -99,7 +99,7 @@
 		}
 	}
 
-	// Sorting functionality
+	// Sorting functionality.
 	let sortField: 'symbol' | 'bid' | 'ask' | 'last' | 'change' | 'volume' = 'symbol';
 	let sortDirection: 'asc' | 'desc' = 'asc';
 
@@ -166,74 +166,109 @@
 </script>
 
 <div class="overflow-x-auto">
-	<table class="min-w-full divide-y divide-gray-200">
+	<table
+		class="min-w-full divide-y divide-gray-200"
+		aria-label="Watchlist symbols table"
+	>
 		<thead class="bg-gray-50">
 			<tr>
 				<th
 					scope="col"
 					class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
+					aria-sort={sortField === 'symbol'
+						? sortDirection === 'asc'
+							? 'ascending'
+							: 'descending'
+						: 'none'}
 				>
 					<button
 						on:click={() => handleSort('symbol')}
 						class="flex items-center space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by symbol"
+						aria-label="Sort by symbol {sortField === 'symbol' && sortDirection === 'asc'
+							? 'descending'
+							: 'ascending'}"
 					>
 						<span>Symbol</span>
-						<Icon 
-							icon={getSortIcon('symbol')} 
-							size="w-3 h-3" 
-							className={sortField === 'symbol' ? 'text-indigo-600' : 'text-gray-400'} 
+						<Icon
+							icon={getSortIcon('symbol')}
+							size="w-3 h-3"
+							className={sortField === 'symbol' ? 'text-indigo-600' : 'text-gray-400'}
+							ariaHidden={true}
 						/>
 					</button>
 				</th>
 				<th
 					scope="col"
 					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+					aria-sort={sortField === 'bid'
+						? sortDirection === 'asc'
+							? 'ascending'
+							: 'descending'
+						: 'none'}
 				>
 					<button
 						on:click={() => handleSort('bid')}
 						class="ml-auto flex items-center justify-end space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by bid"
+						aria-label="Sort by bid price {sortField === 'bid' && sortDirection === 'asc'
+							? 'descending'
+							: 'ascending'}"
 					>
 						<span>Bid</span>
-						<Icon 
-							icon={getSortIcon('bid')} 
-							size="w-3 h-3" 
-							className={sortField === 'bid' ? 'text-indigo-600' : 'text-gray-400'} 
+						<Icon
+							icon={getSortIcon('bid')}
+							size="w-3 h-3"
+							className={sortField === 'bid' ? 'text-indigo-600' : 'text-gray-400'}
+							ariaHidden={true}
 						/>
 					</button>
 				</th>
 				<th
 					scope="col"
 					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+					aria-sort={sortField === 'ask'
+						? sortDirection === 'asc'
+							? 'ascending'
+							: 'descending'
+						: 'none'}
 				>
 					<button
 						on:click={() => handleSort('ask')}
 						class="ml-auto flex items-center justify-end space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by ask"
+						aria-label="Sort by ask price {sortField === 'ask' && sortDirection === 'asc'
+							? 'descending'
+							: 'ascending'}"
 					>
 						<span>Ask</span>
-						<Icon 
-							icon={getSortIcon('ask')} 
-							size="w-3 h-3" 
-							className={sortField === 'ask' ? 'text-indigo-600' : 'text-gray-400'} 
+						<Icon
+							icon={getSortIcon('ask')}
+							size="w-3 h-3"
+							className={sortField === 'ask' ? 'text-indigo-600' : 'text-gray-400'}
+							ariaHidden={true}
 						/>
 					</button>
 				</th>
 				<th
 					scope="col"
 					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
+					aria-sort={sortField === 'last'
+						? sortDirection === 'asc'
+							? 'ascending'
+							: 'descending'
+						: 'none'}
 				>
 					<button
 						on:click={() => handleSort('last')}
 						class="ml-auto flex items-center justify-end space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by last"
+						aria-label="Sort by last price {sortField === 'last' && sortDirection === 'asc'
+							? 'descending'
+							: 'ascending'}"
 					>
 						<span>Last</span>
-						<Icon 
-							icon={getSortIcon('last')} 
-							size="w-3 h-3" 
-							className={sortField === 'last' ? 'text-indigo-600' : 'text-gray-400'} 
+						<Icon
+							icon={getSortIcon('last')}
+							size="w-3 h-3"
+							className={sortField === 'last' ? 'text-indigo-600' : 'text-gray-400'}
+							ariaHidden={true}
 						/>
 					</button>
 				</th>
@@ -241,41 +276,50 @@
 					scope="col"
 					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
 				>
+					<span class="sr-only">Actions</span>
 					Actions
 				</th>
 			</tr>
 		</thead>
 		<tbody class="divide-y divide-gray-200 bg-white">
-			{#each sortedSymbols as symbol}
+			{#each sortedSymbols as symbol (symbol)}
 				{@const quote = $debouncedQuotes.get(symbol)}
 				<tr class="hover:bg-gray-50">
 					<td class="px-6 py-4 whitespace-nowrap">
 						<button
 							on:click={() => handleSymbolClick(symbol)}
 							class="cursor-pointer text-sm font-medium text-indigo-600 hover:text-indigo-900"
+							aria-label="View details for {symbol}"
 						>
 							{symbol}
 						</button>
 					</td>
 					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
 						{#if quote}
-							{formatPrice(quote.bidPrice)}
+							<span aria-label="Bid price for {symbol}: {formatPrice(quote.bidPrice)}">
+								{formatPrice(quote.bidPrice)}
+							</span>
 						{:else}
-							<span class="text-gray-400">--</span>
+							<span class="text-gray-400" aria-label="No bid price available for {symbol}">--</span>
 						{/if}
 					</td>
 					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
 						{#if quote}
-							{formatPrice(quote.askPrice)}
+							<span aria-label="Ask price for {symbol}: {formatPrice(quote.askPrice)}">
+								{formatPrice(quote.askPrice)}
+							</span>
 						{:else}
-							<span class="text-gray-400">--</span>
+							<span class="text-gray-400" aria-label="No ask price available for {symbol}">--</span>
 						{/if}
 					</td>
 					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
 						{#if quote}
-							{formatPrice(quote.lastPrice)}
+							<span aria-label="Last price for {symbol}: {formatPrice(quote.lastPrice)}">
+								{formatPrice(quote.lastPrice)}
+							</span>
 						{:else}
-							<span class="text-gray-400">--</span>
+							<span class="text-gray-400" aria-label="No last price available for {symbol}">--</span
+							>
 						{/if}
 					</td>
 					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
@@ -283,12 +327,18 @@
 							on:click={() => handleRemoveSymbol(symbol)}
 							disabled={removingSymbol === symbol}
 							class="text-red-600 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-50"
-							title="Remove from watchlist"
+							aria-label="Remove {symbol} from watchlist"
 						>
 							{#if removingSymbol === symbol}
-								<Icon icon="lucide:loader-2" size="w-4 h-4" className="animate-spin" />
+								<Icon
+									icon="lucide:loader-2"
+									size="w-4 h-4"
+									className="animate-spin"
+									ariaHidden={true}
+								/>
+								<span class="sr-only">Removing {symbol}...</span>
 							{:else}
-								<Icon icon="lucide:x" size="w-4 h-4" />
+								<Icon icon="lucide:x" size="w-4 h-4" ariaHidden={true} />
 							{/if}
 						</button>
 					</td>

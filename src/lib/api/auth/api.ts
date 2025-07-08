@@ -2,7 +2,7 @@ import { API_BASE_URL, getAuthHeaders, getContentHeaders } from '../shared/confi
 import { handleApiError } from '../shared/utils';
 import type { AuthResponse } from './types';
 
-// Helper function to extract session token from response
+// Helper function to extract session token from response.
 const extractSessionToken = (sessionData: any): string => {
 	const token =
 		sessionData.data?.['session-token'] ||
@@ -18,7 +18,7 @@ const extractSessionToken = (sessionData: any): string => {
 	return token;
 };
 
-// Helper function to create user object
+// Helper function to create user object.
 const createUserFromEmail = (email: string) => ({
 	id: `user-${Date.now()}`,
 	email,
@@ -62,8 +62,8 @@ export const authAPI = {
 	},
 
 	async refreshToken(): Promise<AuthResponse> {
-		// For now, just return the current token
-		// Tastytrade sessions typically don't need refresh
+		// For now, just return the current token.
+		// Tastytrade sessions typically don't need refresh.
 		const token = localStorage.getItem('authToken');
 		const userStr = localStorage.getItem('user');
 

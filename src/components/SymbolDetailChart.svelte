@@ -7,7 +7,7 @@
 	let chartDiv: HTMLDivElement;
 
 	onMount(async () => {
-		// @ts-expect-error: No types for plotly.js-dist
+		// @ts-expect-error: No types for plotly.js-dist.
 		const Plotly = (await import('plotly.js-dist')).default;
 		Plotly.newPlot(
 			chartDiv,

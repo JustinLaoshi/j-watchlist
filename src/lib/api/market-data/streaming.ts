@@ -1,7 +1,7 @@
 import { API_BASE_URL, getAuthHeaders } from '../shared/config';
 import type { SymbolQuote, CandleData } from './types';
 
-// DXLink message types
+// DXLink message types.
 interface DXLinkSetup {
 	type: 'SETUP';
 	channel: number;
@@ -44,7 +44,7 @@ interface DXLinkKeepalive {
 	channel: number;
 }
 
-// API Quote Token response
+// API Quote Token response.
 interface ApiQuoteTokenResponse {
 	data: {
 		token: string;
@@ -62,7 +62,7 @@ export class MarketDataStream {
 	private onMessageCallback: ((data: SymbolQuote) => void) | null = null;
 	private onCandleCallback: ((data: CandleData & { symbol: string }) => void) | null = null;
 	private keepaliveInterval: number | null = null;
-	private channelId = 3; // Using channel 3 for market data
+	private channelId = 3; // Using channel 3 for market data.
 	private isConnected = false;
 	private subscribedSymbols: Set<string> = new Set();
 	private symbolData: Map<string, { lastPrice: number; volume: number; timestamp: number }> =
@@ -72,7 +72,7 @@ export class MarketDataStream {
 		this.sessionToken = sessionToken;
 	}
 
-	// Get API quote token from Tastytrade
+	// Get API quote token from Tastytrade.
 	private async getApiQuoteToken(): Promise<{ token: string; url: string }> {
 		const response = await fetch(`${API_BASE_URL}/api-quote-tokens`, {
 			headers: getAuthHeaders(this.sessionToken)
@@ -97,14 +97,14 @@ export class MarketDataStream {
 		};
 	}
 
-	// Convert symbols to DXLink format
+	// Convert symbols to DXLink format.
 	private async getStreamerSymbols(symbols: string[]): Promise<string[]> {
 		const streamerSymbols: string[] = [];
 
 		for (const symbol of symbols) {
 			try {
-				// Try to get the streamer symbol from the instruments API
-				// We'll try equities first, then other instrument types
+				// Try to get the streamer symbol from the instruments API.
+				// We'll try equities first, then other instrument types.
 				const response = await fetch(`${API_BASE_URL}/instruments/equities/${symbol}`, {
 					headers: getAuthHeaders(this.sessionToken)
 				});
@@ -117,13 +117,13 @@ export class MarketDataStream {
 					}
 				}
 
-				// If not found in equities, try other instrument types
-				// For now, fall back to using the symbol as-is
+				// If not found in equities, try other instrument types.
+				// For now, fall back to using the symbol as-is.
 				// In a full implementation, you'd check futures, options, etc.
 				streamerSymbols.push(symbol.toUpperCase());
 			} catch (error) {
 				console.warn(`Failed to get streamer symbol for ${symbol}:`, error);
-				// Fall back to using the symbol as-is
+				// Fall back to using the symbol as-is.
 				streamerSymbols.push(symbol.toUpperCase());
 			}
 		}
@@ -133,12 +133,12 @@ export class MarketDataStream {
 
 	async connect(symbols: string[]) {
 		try {
-			// Step 1: Get API quote token
+			// Step 1: Get API quote token.
 			const { token, url } = await this.getApiQuoteToken();
 			this.apiQuoteToken = token;
 			this.dxlinkUrl = url;
 
-			// Step 2: Connect to DXLink WebSocket
+			// Step 2: Connect to DXLink WebSocket.
 			this.ws = new WebSocket(url);
 
 			this.ws.onopen = () => {
@@ -173,7 +173,7 @@ export class MarketDataStream {
 		if (!this.ws || !this.isConnected) return;
 
 		try {
-			// Step 3: SETUP
+			// Step 3: SETUP.
 			const setupMessage: DXLinkSetup = {
 				type: 'SETUP',
 				channel: 0,
@@ -183,13 +183,13 @@ export class MarketDataStream {
 			};
 			this.sendMessage(setupMessage);
 
-			// Step 4: AUTHORIZE (will be sent after receiving AUTH_STATE)
-			// Step 5: CHANNEL_REQUEST (will be sent after authorization)
-			// Step 6: FEED_SETUP (will be sent after channel opened)
-			// Step 7: FEED_SUBSCRIPTION (will be sent after feed setup)
-			// Step 8: Start KEEPALIVE
+			// Step 4: AUTHORIZE (will be sent after receiving AUTH_STATE).
+			// Step 5: CHANNEL_REQUEST (will be sent after authorization).
+			// Step 6: FEED_SETUP (will be sent after channel opened).
+			// Step 7: FEED_SUBSCRIPTION (will be sent after feed setup).
+			// Step 8: Start KEEPALIVE.
 
-			// Store symbols for subscription after handshake
+			// Store symbols for subscription after handshake.
 			this.subscribedSymbols = new Set(symbols);
 		} catch (error) {
 			console.error('Failed to perform DXLink handshake:', error);
@@ -203,7 +203,7 @@ export class MarketDataStream {
 
 			case 'AUTH_STATE':
 				if (data.state === 'UNAUTHORIZED') {
-					// Send authorization
+					// Send authorization.
 					const authMessage: DXLinkAuth = {
 						type: 'AUTH',
 						channel: 0,
@@ -211,7 +211,7 @@ export class MarketDataStream {
 					};
 					this.sendMessage(authMessage);
 				} else if (data.state === 'AUTHORIZED') {
-					// Request channel
+					// Request channel.
 					const channelRequest: DXLinkChannelRequest = {
 						type: 'CHANNEL_REQUEST',
 						channel: this.channelId,
@@ -224,7 +224,7 @@ export class MarketDataStream {
 
 			case 'CHANNEL_OPENED':
 				if (data.channel === this.channelId) {
-					// Setup feed
+					// Setup feed.
 					const feedSetup: DXLinkFeedSetup = {
 						type: 'FEED_SETUP',
 						channel: this.channelId,
@@ -275,9 +275,9 @@ export class MarketDataStream {
 
 			case 'FEED_CONFIG':
 				if (data.channel === this.channelId) {
-					// Subscribe to symbols
+					// Subscribe to symbols.
 					this.subscribeToSymbols(Array.from(this.subscribedSymbols));
-					// Start keepalive
+					// Start keepalive.
 					this.startKeepalive();
 				}
 				break;
@@ -289,7 +289,7 @@ export class MarketDataStream {
 				break;
 
 			default:
-				// Handle other message types as needed
+				// Handle other message types as needed.
 				break;
 		}
 	}
@@ -319,14 +319,14 @@ export class MarketDataStream {
 	}
 
 	private handleFeedData(data: any[]) {
-		// Parse DXLink feed data and convert to SymbolQuote format
+		// Parse DXLink feed data and convert to SymbolQuote format.
 		for (const event of data) {
 			const eventType = event[0];
 			const symbol = event[1];
 
 			if (!symbol) continue;
 
-			// Get or create symbol data
+			// Get or create symbol data.
 			let symbolData = this.symbolData.get(symbol);
 			if (!symbolData) {
 				symbolData = { lastPrice: 0, volume: 0, timestamp: Date.now() };
@@ -355,7 +355,7 @@ export class MarketDataStream {
 						timestamp: Date.now()
 					};
 
-					// Update stored data
+					// Update stored data.
 					symbolData.lastPrice = lastPrice;
 					symbolData.timestamp = Date.now();
 
@@ -366,14 +366,14 @@ export class MarketDataStream {
 					const tradePrice = event[2] || 0;
 					const tradeVolume = event[3] || 0;
 
-					// Update volume
+					// Update volume.
 					symbolData.volume += tradeVolume;
 
 					const tradeChange = tradePrice - symbolData.lastPrice;
 					const tradeChangePercent =
 						symbolData.lastPrice > 0 ? (tradeChange / symbolData.lastPrice) * 100 : 0;
 
-					// Create quote from trade data
+					// Create quote from trade data.
 					const tradeQuote: SymbolQuote = {
 						symbol,
 						bidPrice: tradePrice,
@@ -386,7 +386,7 @@ export class MarketDataStream {
 						timestamp: Date.now()
 					};
 
-					// Update stored data
+					// Update stored data.
 					symbolData.lastPrice = tradePrice;
 					symbolData.timestamp = Date.now();
 
@@ -394,20 +394,20 @@ export class MarketDataStream {
 					break;
 
 				case 'Summary':
-					// Handle summary data (day open, high, low, etc.)
+					// Handle summary data (day open, high, low, etc.).
 					const dayOpen = event[3] || 0;
 					const dayHigh = event[4] || 0;
 					const dayLow = event[5] || 0;
 					const prevClose = event[6] || 0;
 
-					// Update change calculations based on previous close
+					// Update change calculations based on previous close.
 					if (prevClose > 0) {
 						symbolData.lastPrice = prevClose;
 					}
 					break;
 
 				case 'Candle':
-					// Handle candle data
+					// Handle candle data.
 					const candleData: CandleData & { symbol: string } = {
 						symbol,
 						timestamp: new Date(event[2] || Date.now()).toISOString(),
@@ -433,7 +433,7 @@ export class MarketDataStream {
 				};
 				this.sendMessage(keepalive);
 			}
-		}, 30000); // Send keepalive every 30 seconds
+		}, 30000); // Send keepalive every 30 seconds.
 	}
 
 	private stopKeepalive() {
@@ -461,9 +461,9 @@ export class MarketDataStream {
 		if (!this.ws || !this.isConnected) return;
 
 		try {
-			// Create candle symbol with period (e.g., AAPL{=1m})
+			// Create candle symbol with period (e.g., AAPL{=1m}).
 			const candleSymbol = `${symbol}{=${period}}`;
-			// Calculate fromTime if not provided (24 hours ago)
+			// Calculate fromTime if not provided (24 hours ago).
 			const fromTimestamp = fromTime || Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
 			const subscription: DXLinkFeedSubscription = {
 				type: 'FEED_SUBSCRIPTION',
@@ -484,7 +484,7 @@ export class MarketDataStream {
 		const symbolsToAdd = symbols.filter((s) => !this.subscribedSymbols.has(s));
 		const symbolsToRemove = Array.from(this.subscribedSymbols).filter((s) => !newSymbols.has(s));
 
-		// Remove old symbols from subscription but preserve their data
+		// Remove old symbols from subscription but preserve their data.
 		if (symbolsToRemove.length > 0) {
 			const streamerSymbols = await this.getStreamerSymbols(symbolsToRemove);
 			const removeSubscription: DXLinkFeedSubscription = {
@@ -499,10 +499,10 @@ export class MarketDataStream {
 			};
 			this.sendMessage(removeSubscription);
 
-			// Note: We don't clear symbolData here to preserve state for when symbols are re-added
+			// Note: We don't clear symbolData here to preserve state for when symbols are re-added.
 		}
 
-		// Add new symbols
+		// Add new symbols.
 		if (symbolsToAdd.length > 0) {
 			await this.subscribeToSymbols(symbolsToAdd);
 		}
@@ -510,7 +510,7 @@ export class MarketDataStream {
 		this.subscribedSymbols = newSymbols;
 	}
 
-	// Initialize symbol data from existing quotes
+	// Initialize symbol data from existing quotes.
 	initializeSymbolData(symbol: string, lastPrice: number, volume: number = 0) {
 		this.symbolData.set(symbol, {
 			lastPrice,

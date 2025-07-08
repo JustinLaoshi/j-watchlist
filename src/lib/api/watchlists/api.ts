@@ -3,12 +3,12 @@ import { handleApiError } from '../shared/utils';
 import type { TastytradeResponse } from '../shared/types';
 import type { Watchlist } from './types';
 
-// Helper function to transform watchlist data from API
+// Helper function to transform watchlist data from API.
 const transformWatchlistData = (data: any, watchlistName?: string): Watchlist => {
-	// Handle nested data structure (like {data: {...}, context: '...'})
+	// Handle nested data structure (like {data: {...}, context: '...'}).
 	const actualData = data.data || data;
 
-	// Use the provided watchlistName if available, otherwise try to extract from data
+	// Use the provided watchlistName if available, otherwise try to extract from data.
 	const name =
 		watchlistName ||
 		actualData.name ||
@@ -16,7 +16,7 @@ const transformWatchlistData = (data: any, watchlistName?: string): Watchlist =>
 		actualData['group-name'] ||
 		'Unnamed Watchlist';
 
-	// Extract symbols from watchlist-entries
+	// Extract symbols from watchlist-entries.
 	const symbols = actualData['watchlist-entries']
 		? actualData['watchlist-entries'].map((entry: any) => entry.symbol || entry['symbol'])
 		: [];
@@ -73,12 +73,12 @@ export const watchlistsAPI = {
 
 		const responseData = await response.json();
 
-		// Check if the response is wrapped in a data field (like other Tastytrade responses)
+		// Check if the response is wrapped in a data field (like other Tastytrade responses).
 		const data = responseData.data || responseData;
 
 		const transformed = transformWatchlistData(data);
 
-		// Validate that the transformed watchlist has a name
+		// Validate that the transformed watchlist has a name.
 		if (!transformed.name) {
 			throw new Error('API returned watchlist with undefined name');
 		}
@@ -95,7 +95,7 @@ export const watchlistsAPI = {
 		}
 
 		try {
-			// First get the current watchlist to see its structure
+			// First get the current watchlist to see its structure.
 			const getResponse = await fetch(
 				`${API_BASE_URL}/watchlists/${encodeURIComponent(watchlistName)}`,
 				{
@@ -109,22 +109,22 @@ export const watchlistsAPI = {
 
 			const currentWatchlistResponse = await getResponse.json();
 
-			// Handle nested data structure for the current watchlist
+			// Handle nested data structure for the current watchlist.
 			const currentWatchlist = currentWatchlistResponse.data || currentWatchlistResponse;
 
-			// Add the new symbol to the existing entries
+			// Add the new symbol to the existing entries.
 			const currentEntries = currentWatchlist['watchlist-entries'] || [];
 			const newEntry = {
 				symbol,
 				'instrument-type': 'Equity'
 			};
 
-			// Check if symbol already exists
+			// Check if symbol already exists.
 			if (!currentEntries.some((entry: any) => entry.symbol === symbol)) {
 				currentEntries.push(newEntry);
 			}
 
-			// Update the entire watchlist using the watchlistName parameter directly
+			// Update the entire watchlist using the watchlistName parameter directly.
 			const updateResponse = await fetch(
 				`${API_BASE_URL}/watchlists/${encodeURIComponent(watchlistName)}`,
 				{
@@ -155,7 +155,7 @@ export const watchlistsAPI = {
 		if (!token) throw new Error('Not authenticated');
 
 		try {
-			// First get the current watchlist to see its structure
+			// First get the current watchlist to see its structure.
 			const getResponse = await fetch(
 				`${API_BASE_URL}/watchlists/${encodeURIComponent(watchlistName)}`,
 				{
@@ -169,14 +169,14 @@ export const watchlistsAPI = {
 
 			const currentWatchlistResponse = await getResponse.json();
 
-			// Handle nested data structure for the current watchlist
+			// Handle nested data structure for the current watchlist.
 			const currentWatchlist = currentWatchlistResponse.data || currentWatchlistResponse;
 
-			// Remove the symbol from the entries
+			// Remove the symbol from the entries.
 			const currentEntries = currentWatchlist['watchlist-entries'] || [];
 			const filteredEntries = currentEntries.filter((entry: any) => entry.symbol !== symbol);
 
-			// Update the entire watchlist using the watchlistName parameter directly
+			// Update the entire watchlist using the watchlistName parameter directly.
 			const updateResponse = await fetch(
 				`${API_BASE_URL}/watchlists/${encodeURIComponent(watchlistName)}`,
 				{
@@ -207,7 +207,7 @@ export const watchlistsAPI = {
 		if (!token) throw new Error('Not authenticated');
 
 		try {
-			// Delete using the watchlist name
+			// Delete using the watchlist name.
 			const response = await fetch(
 				`${API_BASE_URL}/watchlists/${encodeURIComponent(watchlistName)}`,
 				{

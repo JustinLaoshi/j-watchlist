@@ -56,6 +56,35 @@ input:focus {
 	outline-offset: 2px;
 }
 
+/* Accessibility improvements */
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+
+/* Skip link styles */
+.sr-only:focus {
+	position: static;
+	width: auto;
+	height: auto;
+	padding: 0.5rem 1rem;
+	margin: 0;
+	overflow: visible;
+	clip: auto;
+	white-space: normal;
+	background: white;
+	border: 2px solid #3b82f6;
+	border-radius: 0.25rem;
+	z-index: 9999;
+}
+
 /* Loading animation */
 @keyframes spin {
 	to {
@@ -99,5 +128,34 @@ input:focus {
 @media (max-width: 1024px) {
 	.lg\:hidden {
 		display: none;
+	}
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+	*:focus {
+		outline: 3px solid #000;
+		outline-offset: 2px;
+	}
+
+	button:focus,
+	input:focus {
+		outline: 3px solid #000;
+		outline-offset: 2px;
+	}
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+	}
+
+	.animate-spin {
+		animation: none;
 	}
 }

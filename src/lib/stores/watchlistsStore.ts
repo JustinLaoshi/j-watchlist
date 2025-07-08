@@ -9,7 +9,7 @@ export interface WatchlistsState {
 	selectedWatchlistName: string | null;
 }
 
-// Create the watchlists store
+// Create the watchlists store.
 const createWatchlistsStore = () => {
 	const { subscribe, set, update } = writable<WatchlistsState>({
 		watchlists: [],
@@ -21,17 +21,17 @@ const createWatchlistsStore = () => {
 	return {
 		subscribe,
 
-		// Load all watchlists
+		// Load all watchlists.
 		async loadWatchlists() {
 			update((state) => ({ ...state, isLoading: true, error: null }));
 
 			try {
 				const watchlists = await watchlistsAPI.getWatchlists();
 
-				// Filter out any watchlists with undefined names
+				// Filter out any watchlists with undefined names.
 				const validWatchlists = watchlists.filter((wl) => wl.name);
 
-				// Restore selected watchlist from localStorage if it exists and is valid
+				// Restore selected watchlist from localStorage if it exists and is valid.
 				let selectedWatchlistName = localStorage.getItem('selectedWatchlistName');
 				if (
 					!selectedWatchlistName ||
@@ -57,7 +57,7 @@ const createWatchlistsStore = () => {
 			}
 		},
 
-		// Create a new watchlist
+		// Create a new watchlist.
 		async createWatchlist(name: string) {
 			if (!name || !name.trim()) {
 				throw new Error('Watchlist name is required');
@@ -68,7 +68,7 @@ const createWatchlistsStore = () => {
 			try {
 				const newWatchlist = await watchlistsAPI.createWatchlist(name.trim());
 
-				// Validate that the created watchlist has a name
+				// Validate that the created watchlist has a name.
 				if (!newWatchlist.name) {
 					throw new Error('Failed to create watchlist: API returned undefined name');
 				}
@@ -91,7 +91,7 @@ const createWatchlistsStore = () => {
 			}
 		},
 
-		// Add symbol to watchlist
+		// Add symbol to watchlist.
 		async addSymbolToWatchlist(watchlistName: string, symbol: string) {
 			if (!watchlistName) {
 				throw new Error('Watchlist name is required');
@@ -124,7 +124,7 @@ const createWatchlistsStore = () => {
 			}
 		},
 
-		// Remove symbol from watchlist
+		// Remove symbol from watchlist.
 		async removeSymbolFromWatchlist(watchlistName: string, symbol: string) {
 			update((state) => ({ ...state, isLoading: true, error: null }));
 
@@ -152,7 +152,7 @@ const createWatchlistsStore = () => {
 			}
 		},
 
-		// Delete watchlist
+		// Delete watchlist.
 		async deleteWatchlist(watchlistName: string) {
 			update((state) => ({ ...state, isLoading: true, error: null }));
 
@@ -178,27 +178,27 @@ const createWatchlistsStore = () => {
 			}
 		},
 
-		// Select a watchlist
+		// Select a watchlist.
 		selectWatchlist(watchlistName: string) {
 			localStorage.setItem('selectedWatchlistName', watchlistName);
 			update((state) => ({ ...state, selectedWatchlistName: watchlistName }));
 		},
 
-		// Clear error
+		// Clear error.
 		clearError() {
 			update((state) => ({ ...state, error: null }));
 		},
 
-		// Get all symbols from all watchlists
+		// Get all symbols from all watchlists.
 		getAllSymbols(): string[] {
 			let symbols: string[] = [];
 			subscribe((state) => {
 				symbols = state.watchlists.flatMap((wl) => wl.symbols);
 			})();
-			return [...new Set(symbols)]; // Remove duplicates
+			return [...new Set(symbols)]; // Remove duplicates.
 		},
 
-		// Get selected watchlist
+		// Get selected watchlist.
 		getSelectedWatchlist(): Watchlist | null {
 			let selectedWatchlist: Watchlist | null = null;
 			subscribe((state) => {
@@ -212,7 +212,7 @@ const createWatchlistsStore = () => {
 
 export const watchlistsStore = createWatchlistsStore();
 
-// Derived stores for convenience
+// Derived stores for convenience.
 export const selectedWatchlist = derived(watchlistsStore, ($watchlistsStore) => {
 	return (
 		$watchlistsStore.watchlists.find((wl) => wl.name === $watchlistsStore.selectedWatchlistName) ||
@@ -222,5 +222,5 @@ export const selectedWatchlist = derived(watchlistsStore, ($watchlistsStore) => 
 
 export const allSymbols = derived(watchlistsStore, ($watchlistsStore) => {
 	const symbols = $watchlistsStore.watchlists.flatMap((wl) => wl.symbols);
-	return [...new Set(symbols)]; // Remove duplicates
+	return [...new Set(symbols)]; // Remove duplicates.
 });

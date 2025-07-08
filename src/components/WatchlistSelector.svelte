@@ -16,7 +16,7 @@
 	let searchTerm = '';
 	let filteredWatchlists: Watchlist[] = [];
 
-	// Filter watchlists based on search term
+	// Filter watchlists based on search term.
 	$: filteredWatchlists = watchlists.filter((watchlist) =>
 		watchlist.name.toLowerCase().includes(searchTerm.toLowerCase())
 	);
@@ -43,7 +43,7 @@
 		}
 	}
 
-	// Close dropdown when clicking outside
+	// Close dropdown when clicking outside.
 	$: if (isOpen && browser) {
 		setTimeout(() => {
 			document.addEventListener('click', handleClickOutside);
@@ -68,6 +68,10 @@
 		type="button"
 		on:click={handleToggle}
 		class="relative w-64 cursor-default rounded-md border border-gray-300 bg-white py-2 pr-10 pl-3 text-left shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none sm:text-sm"
+		aria-haspopup="listbox"
+		aria-expanded={isOpen}
+		aria-labelledby="watchlist-select-label"
+		id="watchlist-select"
 	>
 		<span class="block truncate">
 			{#if selectedWatchlistName}
@@ -86,6 +90,7 @@
 				icon={isOpen ? 'lucide:chevron-up' : 'lucide:chevron-down'}
 				size="w-4 h-4"
 				className="text-gray-400"
+				ariaHidden={true}
 			/>
 		</span>
 	</button>
@@ -93,6 +98,8 @@
 	{#if isOpen}
 		<div
 			class="ring-opacity-5 absolute z-10 mt-1 max-h-60 w-64 overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black focus:outline-none sm:text-sm"
+			role="listbox"
+			aria-labelledby="watchlist-select-label"
 		>
 			<!-- Search input -->
 			<div class="border-b border-gray-200 px-3 py-2">
@@ -101,6 +108,7 @@
 						icon="lucide:search"
 						size="w-4 h-4"
 						className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+						ariaHidden={true}
 					/>
 					<input
 						type="text"
@@ -108,13 +116,14 @@
 						placeholder="Search watchlists..."
 						class="block w-full rounded-md border border-gray-300 py-2 pr-3 pl-10 text-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
 						autocomplete="off"
+						aria-label="Search watchlists"
 					/>
 				</div>
 			</div>
 
 			<!-- Watchlist options -->
 			{#if filteredWatchlists.length > 0}
-				{#each filteredWatchlists as watchlist}
+				{#each filteredWatchlists as watchlist, index}
 					<button
 						type="button"
 						on:click={() => handleSelect(watchlist.name)}
@@ -122,6 +131,8 @@
 						selectedWatchlistName
 							? 'bg-indigo-100 text-indigo-900'
 							: 'text-gray-900'}"
+						role="option"
+						aria-selected={watchlist.name === selectedWatchlistName}
 					>
 						<div class="flex items-center justify-between">
 							<span class="truncate">{watchlist.name}</span>
@@ -132,7 +143,7 @@
 					</button>
 				{/each}
 			{:else}
-				<div class="px-3 py-2 text-sm text-gray-500">
+				<div class="px-3 py-2 text-sm text-gray-500" role="status" aria-live="polite">
 					{searchTerm ? 'No watchlists found' : 'No watchlists available'}
 				</div>
 			{/if}

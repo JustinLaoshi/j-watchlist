@@ -1,4 +1,4 @@
-// Helper function to handle API errors
+// Helper function to handle API errors.
 export const handleApiError = async (
 	response: Response,
 	defaultMessage: string
@@ -13,7 +13,7 @@ export const handleApiError = async (
 	throw new Error(errorMessage);
 };
 
-// Helper function to extract items from API response
+// Helper function to extract items from API response.
 export const extractItemsFromResponse = (data: any): any[] => {
 	if (Array.isArray(data)) return data;
 	if (data.data && Array.isArray(data.data)) return data.data;

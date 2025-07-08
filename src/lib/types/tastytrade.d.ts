@@ -1,6 +1,6 @@
-// TypeScript interfaces and types for TastyTrade API
+// TypeScript interfaces and types for TastyTrade API.
 
-// Authentication types
+// Authentication types.
 export interface TastyTradeAuthRequest {
 	login: string;
 	password: string;
@@ -19,7 +19,7 @@ export interface TastyTradeAuthResponse {
 	};
 }
 
-// Watchlist types
+// Watchlist types.
 export interface TastyTradeWatchlist {
 	id: string;
 	name: string;
@@ -44,7 +44,7 @@ export interface TastyTradeAddSymbolRequest {
 	instrument_type?: string;
 }
 
-// Market data types
+// Market data types.
 export interface TastyTradeQuote {
 	symbol: string;
 	last_price: number;
@@ -103,7 +103,7 @@ export interface TastyTradeSymbolSearchResult {
 	is_quotable: boolean;
 }
 
-// WebSocket types
+// WebSocket types.
 export interface TastyTradeWebSocketMessage {
 	type: 'quote' | 'heartbeat' | 'error';
 	data?: any;
@@ -121,14 +121,14 @@ export interface TastyTradeWebSocketUpdateRequest {
 	symbols: string[];
 }
 
-// Error types
+// Error types.
 export interface TastyTradeError {
 	code: string;
 	message: string;
 	details?: any;
 }
 
-// API Response wrapper types
+// API Response wrapper types.
 export interface TastyTradeResponse<T> {
 	data: T;
 	context: string;

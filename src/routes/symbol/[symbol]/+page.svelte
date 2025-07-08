@@ -4,13 +4,14 @@
 	import { goto } from '$app/navigation';
 	import { sessionStore } from '$lib/stores/sessionStore';
 	import { marketDataStore } from '$lib/stores/marketDataStore';
+	import { watchlistsStore } from '$lib/stores/watchlistsStore';
 	import Icon from '$lib/components/Icon.svelte';
 	import { MarketDataStream } from '$lib/api/market-data/streaming';
 	import { getPolygonCandles } from '$lib/api/market-data/api';
 	import SymbolDetailChart from '../../../components/SymbolDetailChart.svelte';
 	import { writable } from 'svelte/store';
 
-	// Get symbol from URL params
+	// Get symbol from URL params.
 	$: symbol = $page.params.symbol?.toUpperCase();
 	$: isAuthenticated = $sessionStore.isAuthenticated;
 
@@ -32,26 +33,26 @@
 			return;
 		}
 		marketStream = new MarketDataStream(token);
-		// Listen for candle events
+		// Listen for candle events.
 		marketStream.onCandleMessage((candle) => {
 			if (candle.symbol !== symbol) return;
 			chartCandles = [...chartCandles, candle];
-			// Remove duplicates by timestamp
+			// Remove duplicates by timestamp.
 			const seen = new Set();
 			chartCandles = chartCandles.filter((c) => {
 				if (seen.has(c.timestamp)) return false;
 				seen.add(c.timestamp);
 				return true;
 			});
-			// Sort by timestamp
+			// Sort by timestamp.
 			chartCandles.sort(
 				(a, b) => new Date(candle.timestamp).getTime() - new Date(b.timestamp).getTime()
 			);
 		});
-		// Connect and subscribe to candles
+		// Connect and subscribe to candles.
 		try {
 			await marketStream.connect([symbol]);
-			// Subscribe to 1m candles for the symbol (AAPL), with explicit fromTime (24h ago)
+			// Subscribe to 1m candles for the symbol (AAPL), with explicit fromTime (24h ago).
 			const fromTime = Math.floor((Date.now() - 24 * 60 * 60 * 1000) / 1000);
 			await marketStream.subscribeToCandles(symbol, '1m', fromTime);
 		} catch (err) {
@@ -59,7 +60,7 @@
 		}
 	}
 
-	// Throttled quote for detail page
+	// Throttled quote for detail page.
 	let throttledQuote = writable<any>(null);
 	let quoteTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -83,8 +84,8 @@
 		}
 		try {
 			await marketDataStore.loadQuotes([symbol]);
-			await startChartCandleStream(); // Streaming logic remains
-			// Fetch Polygon candles for the last 5 days (1m interval)
+			await startChartCandleStream(); // Streaming logic remains.
+			// Fetch Polygon candles for the last 5 days (1m interval).
 			const now = new Date();
 			const to = now.toISOString().slice(0, 10);
 			const fromDate = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000);
@@ -119,10 +120,11 @@
 	}
 
 	function goBack() {
+		// Navigate back to watchlists page, preserving the selected watchlist.
 		goto('/watchlists');
 	}
 
-	// Helper to get latest candle for open/high/low
+	// Helper to get latest candle for open/high/low.
 	$: latestCandle =
 		chartCandles && chartCandles.length > 0 ? chartCandles[chartCandles.length - 1] : null;
 
@@ -143,7 +145,7 @@
 	let mappedCandles: { time: number; open: number; high: number; low: number; close: number }[] =
 		[];
 	$: {
-		// Find the latest date in the data
+		// Find the latest date in the data.
 		const dates = polygonCandles.map((c) => new Date(c.timestamp));
 		const latestDate = dates.length ? new Date(Math.max(...dates.map((d) => d.getTime()))) : null;
 
@@ -185,15 +187,27 @@
 
 <div class="min-h-screen bg-gray-50">
 	<!-- Navigation -->
-	<nav class="border-b border-gray-200 bg-white shadow-sm">
+	<nav
+		class="border-b border-gray-200 bg-white shadow-sm"
+		aria-label="Symbol detail navigation"
+	>
 		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 			<div class="flex h-16 justify-between">
 				<div class="flex items-center">
-					<button on:click={goBack} class="mr-4 text-gray-500 hover:text-gray-700">
-						<Icon icon="lucide:arrow-left" size="w-6 h-6" />
+					<button
+						on:click={goBack}
+						class="mr-4 text-gray-500 hover:text-gray-700"
+						aria-label="Go back to watchlists"
+					>
+						<Icon icon="lucide:arrow-left" size="w-6 h-6" ariaHidden={true} />
 					</button>
 					<div class="flex flex-shrink-0 items-center">
-						<Icon icon="lucide:bar-chart-3" size="w-8 h-8" className="text-indigo-600" />
+						<Icon
+							icon="lucide:bar-chart-3"
+							size="w-8 h-8"
+							className="text-indigo-600"
+							ariaHidden={true}
+						/>
 						<span class="ml-2 text-xl font-bold text-gray-900">Stock Watchlist</span>
 					</div>
 				</div>
@@ -201,12 +215,17 @@
 		</div>
 	</nav>
 
-	<div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+	<main class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
 		{#if error}
-			<div class="mb-6 rounded-md bg-red-50 p-4">
+			<div class="mb-6 rounded-md bg-red-50 p-4" role="alert" aria-live="polite">
 				<div class="flex">
 					<div class="flex-shrink-0">
-						<Icon icon="lucide:alert-circle" size="w-5 h-5" className="text-red-400" />
+						<Icon
+							icon="lucide:alert-circle"
+							size="w-5 h-5"
+							className="text-red-400"
+							ariaHidden={true}
+						/>
 					</div>
 					<div class="ml-3">
 						<h3 class="text-sm font-medium text-red-800">
@@ -218,8 +237,14 @@
 		{/if}
 
 		{#if isLoading}
-			<div class="flex items-center justify-center py-12">
-				<Icon icon="lucide:loader-2" size="w-8 h-8" className="animate-spin text-indigo-600" />
+			<div class="flex items-center justify-center py-12" role="status" aria-live="polite">
+				<Icon
+					icon="lucide:loader-2"
+					size="w-8 h-8"
+					className="animate-spin text-indigo-600"
+					ariaHidden={true}
+				/>
+				<span class="sr-only">Loading {symbol} data...</span>
 			</div>
 		{:else if $throttledQuote}
 			<!-- Symbol Header -->
@@ -227,9 +252,9 @@
 				<div class="px-4 py-5 sm:px-6">
 					<div class="flex items-center justify-between">
 						<div>
-							<h3 class="text-lg leading-6 font-medium text-gray-900">
+							<h1 class="text-lg leading-6 font-medium text-gray-900">
 								{symbol}
-							</h3>
+							</h1>
 							<p class="mt-1 max-w-2xl text-sm text-gray-500">
 								{#if $throttledQuote && $throttledQuote.description}
 									{$throttledQuote.description}
@@ -242,7 +267,9 @@
 							<div class="flex items-center justify-end space-x-2">
 								<div class="text-2xl font-bold text-gray-900">
 									{#if $throttledQuote && typeof $throttledQuote.lastPrice === 'number'}
-										{formatPrice($throttledQuote.lastPrice)}
+										<span aria-label="Last trade price: {formatPrice($throttledQuote.lastPrice)}">
+											{formatPrice($throttledQuote.lastPrice)}
+										</span>
 										<span class="ml-2 text-xs text-gray-500">(Last Trade)</span>
 									{:else}
 										--
@@ -252,14 +279,24 @@
 									class="ml-2 flex items-center justify-center rounded border border-gray-300 bg-gray-100 px-2 py-1 text-xs font-medium hover:bg-gray-200"
 									on:click={hardRefreshQuote}
 									disabled={isHardRefreshing}
-									title="Fetch latest quote now"
+									aria-label="Fetch latest quote for {symbol}"
 									style="width: 90px; min-height: 28px;"
 								>
 									{#if isHardRefreshing}
-										<Icon icon="lucide:loader-2" size="w-4 h-4" className="animate-spin mr-1" />
-										Refreshing
+										<Icon
+											icon="lucide:loader-2"
+											size="w-4 h-4"
+											className="animate-spin mr-1"
+											ariaHidden={true}
+										/>
+										<span aria-live="polite">Refreshing</span>
 									{:else}
-										<Icon icon="lucide:refresh-cw" size="w-4 h-4" className="mr-1" />
+										<Icon
+											icon="lucide:refresh-cw"
+											size="w-4 h-4"
+											className="mr-1"
+											ariaHidden={true}
+										/>
 										Refresh
 									{/if}
 								</button>
@@ -268,6 +305,10 @@
 								class={$throttledQuote && $throttledQuote.change >= 0
 									? 'text-green-600'
 									: 'text-red-600'}
+								aria-label="Price change: {formatChange(
+									$throttledQuote.change,
+									$throttledQuote.changePercent
+								)}"
 							>
 								{#if $throttledQuote}
 									{formatChange($throttledQuote.change, $throttledQuote.changePercent)}
@@ -300,17 +341,22 @@
 			<!-- Chart -->
 			<div class="mb-6 overflow-hidden bg-white shadow sm:rounded-lg">
 				<div class="px-4 py-5 sm:px-6">
-					<h3 class="text-lg leading-6 font-medium text-gray-900">Price Chart (Last 24h)</h3>
+					<h2 class="text-lg leading-6 font-medium text-gray-900">Price Chart (Last 24h)</h2>
 				</div>
 				<div class="px-4 py-5 sm:p-6">
 					<div class="h-80 w-full rounded-lg border border-gray-200 bg-white p-4">
 						{#if mappedCandles.length === 0}
-							<div class="flex h-full items-center justify-center text-gray-500">
+							<div
+								class="flex h-full items-center justify-center text-gray-500"
+								role="status"
+								aria-live="polite"
+							>
 								<div class="text-center">
 									<Icon
 										icon="lucide:bar-chart-3"
 										size="w-12 h-12"
 										className="mx-auto text-gray-400"
+										ariaHidden={true}
 									/>
 									<p class="mt-2">No chart data available</p>
 								</div>
@@ -328,6 +374,7 @@
 					fill="none"
 					stroke="currentColor"
 					viewBox="0 0 24 24"
+					aria-hidden="true"
 				>
 					<path
 						stroke-linecap="round"
@@ -340,5 +387,5 @@
 				<p class="mt-1 text-sm text-gray-500">Unable to load data for {symbol}.</p>
 			</div>
 		{/if}
-	</div>
+	</main>
 </div>

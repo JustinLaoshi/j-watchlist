@@ -50,7 +50,7 @@
 		}
 	}
 
-	// Close dropdown when clicking outside
+	// Close dropdown when clicking outside.
 	$: if (isOpen && browser) {
 		setTimeout(() => {
 			document.addEventListener('click', handleClickOutside);
@@ -75,6 +75,10 @@
 	<div
 		class="add-watchlist-dropdown absolute right-0 z-50 mt-2 w-96 rounded-lg border border-gray-200 bg-white shadow-lg"
 		style="min-width: 384px;"
+		role="dialog"
+		aria-modal="true"
+		aria-labelledby="add-watchlist-title"
+		aria-describedby="add-watchlist-description"
 	>
 		<div class="p-6">
 			<div class="mb-4 flex items-center justify-between">
@@ -82,19 +86,24 @@
 					<div
 						class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100"
 					>
-						<Icon icon="lucide:plus" size="w-5 h-5" className="text-indigo-600" />
+						<Icon icon="lucide:plus" size="w-5 h-5" className="text-indigo-600" ariaHidden={true} />
 					</div>
 					<div class="ml-3">
-						<h3 class="text-base leading-6 font-semibold text-gray-900">Create New Watchlist</h3>
-						<p class="text-sm text-gray-500">Enter a name for your new watchlist.</p>
+						<h3 id="add-watchlist-title" class="text-base leading-6 font-semibold text-gray-900">
+							Add New Watchlist
+						</h3>
+						<p id="add-watchlist-description" class="text-sm text-gray-500">
+							Create a new watchlist to organize your symbols.
+						</p>
 					</div>
 				</div>
 				<button
 					on:click={handleClose}
 					disabled={isLoading}
 					class="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+					aria-label="Close dialog"
 				>
-					<Icon icon="lucide:x" size="w-5 h-5" />
+					<Icon icon="lucide:x" size="w-5 h-5" ariaHidden={true} />
 				</button>
 			</div>
 
@@ -111,14 +120,26 @@
 						class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm"
 						placeholder="e.g., Tech Stocks, Dividend Payers"
 						autocomplete="off"
+						required
+						aria-describedby={error ? 'watchlist-error' : undefined}
 					/>
 				</div>
 
 				{#if error}
-					<div class="rounded-md bg-red-50 p-4">
+					<div
+						id="watchlist-error"
+						class="rounded-md bg-red-50 p-4"
+						role="alert"
+						aria-live="polite"
+					>
 						<div class="flex">
 							<div class="flex-shrink-0">
-								<Icon icon="lucide:alert-circle" size="w-5 h-5" className="text-red-400" />
+								<Icon
+									icon="lucide:alert-circle"
+									size="w-5 h-5"
+									className="text-red-400"
+									ariaHidden={true}
+								/>
 							</div>
 							<div class="ml-3">
 								<h3 class="text-sm font-medium text-red-800">
@@ -142,10 +163,16 @@
 						type="submit"
 						disabled={isLoading}
 						class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+						aria-describedby={error ? 'watchlist-error' : undefined}
 					>
 						{#if isLoading}
-							<Icon icon="lucide:loader-2" size="w-4 h-4" className="animate-spin -ml-1 mr-2" />
-							Creating...
+							<Icon
+								icon="lucide:loader-2"
+								size="w-4 h-4"
+								className="animate-spin -ml-1 mr-2"
+								ariaHidden={true}
+							/>
+							<span aria-live="polite">Creating...</span>
 						{:else}
 							Create Watchlist
 						{/if}

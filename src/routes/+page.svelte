@@ -5,7 +5,7 @@
 	import Icon from '$lib/components/Icon.svelte';
 
 	onMount(() => {
-		// Redirect based on authentication status
+		// Redirect based on authentication status.
 		if ($sessionStore.isAuthenticated) {
 			goto('/watchlists');
 		} else {

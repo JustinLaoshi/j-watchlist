@@ -14,12 +14,12 @@
 	let isSymbolDropdownClosing = false;
 	let isInitialLoad = true;
 
-	// Subscribe to stores
+	// Subscribe to stores.
 	$: ({ user } = $sessionStore);
 	$: ({ watchlists, isLoading, error } = $watchlistsStore);
 	$: currentWatchlist = $selectedWatchlist;
 
-	// Load data on mount
+	// Load data on mount.
 	onMount(async () => {
 		if (!$sessionStore.isAuthenticated) {
 			goto('/login');
@@ -27,7 +27,10 @@
 		}
 
 		try {
-			await watchlistsStore.loadWatchlists();
+			// Only load watchlists if they haven't been loaded yet.
+			if ($watchlistsStore.watchlists.length === 0) {
+				await watchlistsStore.loadWatchlists();
+			}
 		} catch (error) {
 			console.error('Failed to load watchlists:', error);
 		} finally {
@@ -52,7 +55,9 @@
 		if (showAddSymbolDropdown) {
 			isSymbolDropdownClosing = true;
 			showAddSymbolDropdown = false;
-			setTimeout(() => { isSymbolDropdownClosing = false; }, 100);
+			setTimeout(() => {
+				isSymbolDropdownClosing = false;
+			}, 100);
 		} else if (!isSymbolDropdownClosing) {
 			showAddSymbolDropdown = true;
 		}
@@ -82,19 +87,31 @@
 
 <div class="min-h-screen bg-gray-50">
 	<!-- Navigation -->
-	<nav class="border-b border-gray-200 bg-white shadow-sm">
+	<nav
+		class="border-b border-gray-200 bg-white shadow-sm"
+		aria-label="Main navigation"
+	>
 		<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 			<div class="flex h-16 justify-between">
 				<div class="flex items-center">
 					<div class="flex flex-shrink-0 items-center">
-						<Icon icon="lucide:bar-chart-3" size="w-8 h-8" className="text-indigo-600" />
+						<Icon
+							icon="lucide:bar-chart-3"
+							size="w-8 h-8"
+							className="text-indigo-600"
+							ariaHidden={true}
+						/>
 						<span class="ml-2 text-xl font-bold text-gray-900">Stock Watchlist</span>
 					</div>
 				</div>
 
 				<div class="flex items-center space-x-4">
 					<span class="text-sm text-gray-700">Welcome, {user?.username || user?.email}</span>
-					<button on:click={handleLogout} class="text-sm text-gray-500 hover:text-gray-700">
+					<button
+						on:click={handleLogout}
+						class="text-sm text-gray-500 hover:text-gray-700"
+						aria-label="Sign out of your account"
+					>
 						Sign out
 					</button>
 				</div>
@@ -102,13 +119,18 @@
 		</div>
 	</nav>
 
-	<div class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
+	<main id="main-content" class="mx-auto max-w-7xl py-6 sm:px-6 lg:px-8">
 		<!-- Error Alert -->
 		{#if error}
-			<div class="mb-6 rounded-md bg-red-50 p-4">
+			<div class="mb-6 rounded-md bg-red-50 p-4" role="alert" aria-live="polite">
 				<div class="flex">
 					<div class="flex-shrink-0">
-						<Icon icon="lucide:alert-circle" size="w-5 h-5" className="text-red-400" />
+						<Icon
+							icon="lucide:alert-circle"
+							size="w-5 h-5"
+							className="text-red-400"
+							ariaHidden={true}
+						/>
 					</div>
 					<div class="ml-3">
 						<h3 class="text-sm font-medium text-red-800">
@@ -119,9 +141,10 @@
 						<button
 							on:click={() => watchlistsStore.clearError()}
 							class="text-red-400 hover:text-red-600"
+							aria-label="Dismiss error message"
 						>
 							<span class="sr-only">Dismiss</span>
-							<Icon icon="lucide:x" size="w-5 h-5" />
+							<Icon icon="lucide:x" size="w-5 h-5" ariaHidden={true} />
 						</button>
 					</div>
 				</div>
@@ -146,8 +169,11 @@
 						<button
 							on:click|stopPropagation={handleAddWatchlist}
 							class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+							aria-expanded={showAddWatchlistModal}
+							aria-haspopup="dialog"
+							aria-label="Create new watchlist"
 						>
-							<Icon icon="lucide:plus" size="w-4 h-4" className="-ml-1 mr-2" />
+							<Icon icon="lucide:plus" size="w-4 h-4" className="-ml-1 mr-2" ariaHidden={true} />
 							New Watchlist
 						</button>
 						<AddWatchlistDropdown isOpen={showAddWatchlistModal} on:close={closeModals} />
@@ -159,10 +185,13 @@
 								on:click|stopPropagation={handleAddSymbol}
 								disabled={isLoading}
 								class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+								aria-expanded={showAddSymbolDropdown}
+								aria-haspopup="dialog"
+								aria-label="Add symbol to {currentWatchlist.name} watchlist"
 							>
-								<Icon icon="lucide:plus" size="w-4 h-4" className="-ml-1 mr-2" />
+								<Icon icon="lucide:plus" size="w-4 h-4" className="-ml-1 mr-2" ariaHidden={true} />
 								Add Symbol
-								<span class="ml-1 inline-block w-3 text-center">
+								<span class="ml-1 inline-block w-3 text-center" aria-hidden="true">
 									{#if showAddSymbolDropdown}
 										▼
 									{:else}
@@ -183,20 +212,32 @@
 
 		<!-- Main Content -->
 		{#if isInitialLoad}
-			<div class="flex items-center justify-center py-12">
-				<Icon icon="lucide:loader-2" size="w-8 h-8" className="animate-spin text-indigo-600" />
+			<div class="flex items-center justify-center py-12" role="status" aria-live="polite">
+				<Icon
+					icon="lucide:loader-2"
+					size="w-8 h-8"
+					className="animate-spin text-indigo-600"
+					ariaHidden={true}
+				/>
+				<span class="sr-only">Loading watchlists...</span>
 			</div>
 		{:else if watchlists.length === 0}
 			<div class="py-12 text-center">
-				<Icon icon="lucide:bar-chart-3" size="w-12 h-12" className="mx-auto text-gray-400" />
+				<Icon
+					icon="lucide:bar-chart-3"
+					size="w-12 h-12"
+					className="mx-auto text-gray-400"
+					ariaHidden={true}
+				/>
 				<h3 class="mt-2 text-sm font-medium text-gray-900">No watchlists</h3>
 				<p class="mt-1 text-sm text-gray-500">Get started by creating your first watchlist.</p>
 				<div class="mt-6">
 					<button
 						on:click={handleAddWatchlist}
 						class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+						aria-label="Create your first watchlist"
 					>
-						<Icon icon="lucide:plus" size="w-4 h-4" className="-ml-1 mr-2" />
+						<Icon icon="lucide:plus" size="w-4 h-4" className="-ml-1 mr-2" ariaHidden={true} />
 						New Watchlist
 					</button>
 				</div>
@@ -211,7 +252,8 @@
 									{currentWatchlist.name}
 								</h3>
 								<p class="mt-1 max-w-2xl text-sm text-gray-500">
-									{currentWatchlist.symbols.length} {currentWatchlist.symbols.length === 1 ? 'symbol' : 'symbols'} • Last updated {new Date(
+									{currentWatchlist.symbols.length}
+									{currentWatchlist.symbols.length === 1 ? 'symbol' : 'symbols'} • Last updated {new Date(
 										currentWatchlist.updatedAt
 									).toLocaleDateString()}
 								</p>
@@ -255,7 +297,7 @@
 				{/if}
 			</div>
 		{/if}
-	</div>
+	</main>
 
 	<!-- Modals -->
 </div>

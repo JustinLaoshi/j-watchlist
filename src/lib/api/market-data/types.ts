@@ -8,7 +8,7 @@ export interface SymbolQuote {
 	volume: number;
 	marketCap?: number;
 	lastUpdated: string;
-	timestamp?: number; // For real-time streaming data
+	timestamp?: number; // For real-time streaming data.
 }
 
 export interface CandleData {

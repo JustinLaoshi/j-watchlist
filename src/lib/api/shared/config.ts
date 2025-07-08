@@ -1,7 +1,7 @@
-// Base API configuration
+// Base API configuration.
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://api.cert.tastyworks.com';
 
-// Common headers for API requests
+// Common headers for API requests.
 export const getAuthHeaders = (token: string) => ({
 	Authorization: token,
 	Accept: 'application/json',

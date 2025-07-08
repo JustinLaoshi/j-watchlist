@@ -3,12 +3,12 @@ import { handleApiError, extractItemsFromResponse } from '../shared/utils';
 import type { TastytradeResponse } from '../shared/types';
 import type { SymbolQuote, CandleData } from './types';
 
-// Helper function to transform quote data
+// Helper function to transform quote data.
 const transformQuoteData = (quote: any): SymbolQuote => {
-	// Handle nested data structure
+	// Handle nested data structure.
 	const data = quote.data || quote;
 
-	// Calculate change and change percent from prev-close and last
+	// Calculate change and change percent from prev-close and last.
 	const lastPrice = parseFloat(data.last) || 0;
 	const prevClose = parseFloat(data['prev-close']) || 0;
 	const change = lastPrice - prevClose;
@@ -27,7 +27,7 @@ const transformQuoteData = (quote: any): SymbolQuote => {
 	};
 };
 
-// Helper function to transform candle data
+// Helper function to transform candle data.
 const transformCandleData = (candle: any): CandleData => ({
 	timestamp: candle.timestamp,
 	open: candle.open,
@@ -43,7 +43,7 @@ export const marketDataAPI = {
 		if (!token) throw new Error('Not authenticated');
 
 		try {
-			// Use the correct market-data endpoint for each symbol
+			// Use the correct market-data endpoint for each symbol.
 			const quotePromises = symbols.map(async (symbol) => {
 				const response = await fetch(`${API_BASE_URL}/market-data/${symbol}`, {
 					headers: getAuthHeaders(token)
@@ -106,7 +106,7 @@ export const marketDataAPI = {
 		let response: Response;
 		let workingEndpoint = '';
 
-		// Try endpoints until one works
+		// Try endpoints until one works.
 		for (const endpoint of endpoints) {
 			response = await fetch(endpoint, { headers: getAuthHeaders(token) });
 			if (response.ok) {
