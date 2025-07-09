@@ -11,9 +11,9 @@
 
 	let showAddWatchlistModal = false;
 	let showAddSymbolDropdown = false;
-	let isSymbolDropdownClosing = false;
 	let isInitialLoad = true;
 	let isWatchlistSelectorOpen = false;
+	let addSymbolButtonRef: HTMLElement | null = null;
 
 	// Subscribe to stores.
 	$: ({ user } = $sessionStore);
@@ -59,15 +59,7 @@
 		// Close others
 		showAddWatchlistModal = false;
 		isWatchlistSelectorOpen = false;
-		if (showAddSymbolDropdown) {
-			isSymbolDropdownClosing = true;
-			showAddSymbolDropdown = false;
-			setTimeout(() => {
-				isSymbolDropdownClosing = false;
-			}, 100);
-		} else if (!isSymbolDropdownClosing) {
-			showAddSymbolDropdown = true;
-		}
+		showAddSymbolDropdown = !showAddSymbolDropdown;
 	}
 
 	function handleWatchlistSelectorOpenChange(open: boolean) {
@@ -199,7 +191,8 @@
 					{#if currentWatchlist && currentWatchlist.name}
 						<div class="relative inline-block">
 							<button
-								on:click|stopPropagation={handleAddSymbol}
+								bind:this={addSymbolButtonRef}
+								on:click={handleAddSymbol}
 								disabled={isLoading}
 								class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 								aria-expanded={showAddSymbolDropdown}
@@ -220,6 +213,7 @@
 								watchlistName={currentWatchlist.name}
 								isOpen={showAddSymbolDropdown}
 								on:close={() => (showAddSymbolDropdown = false)}
+								buttonRef={addSymbolButtonRef}
 							/>
 						</div>
 					{/if}
@@ -303,7 +297,7 @@
 						<p class="mt-1 text-sm text-gray-500">Add symbols to start tracking their prices.</p>
 						<div class="mt-6">
 							<button
-								on:click={handleAddSymbol}
+								on:click|stopPropagation={handleAddSymbol}
 								class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
 							>
 								<Icon icon="lucide:plus" size="w-4 h-4" className="-ml-1 mr-2" />

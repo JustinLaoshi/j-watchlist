@@ -3,10 +3,12 @@
 	import { marketDataStore } from '$lib/stores/marketDataStore';
 	import { watchlistsStore } from '$lib/stores/watchlistsStore';
 	import Icon from '$lib/components/Icon.svelte';
+	import { formatPrice } from '$lib/utils';
 	import type { Watchlist } from '$lib/api/watchlists';
 	import { onDestroy } from 'svelte';
 	import { writable } from 'svelte/store';
 	import { onMount } from 'svelte';
+	import Button from '$lib/components/Button.svelte';
 
 	export let watchlist: Watchlist;
 
@@ -45,32 +47,6 @@
 		if (throttleTimer) clearInterval(throttleTimer);
 	});
 
-	function formatPrice(price: number): string {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD',
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2
-		}).format(price);
-	}
-
-	function formatChange(change: number, changePercent: number): string {
-		const sign = change >= 0 ? '+' : '';
-		return `${sign}${formatPrice(change)} (${sign}${(changePercent || 0).toFixed(2)}%)`;
-	}
-
-	function formatVolume(volume: number): string {
-		const vol = volume || 0;
-		if (vol >= 1e9) {
-			return `${(vol / 1e9).toFixed(2)}B`;
-		} else if (vol >= 1e6) {
-			return `${(vol / 1e6).toFixed(2)}M`;
-		} else if (vol >= 1e3) {
-			return `${(vol / 1e3).toFixed(2)}K`;
-		}
-		return vol.toString();
-	}
-
 	async function handleRemoveSymbol(symbol: string) {
 		try {
 			removingSymbol = symbol;
@@ -99,11 +75,25 @@
 		}
 	}
 
-	// Sorting functionality.
-	let sortField: 'symbol' | 'bid' | 'ask' | 'last' | 'change' | 'volume' = 'symbol';
-	let sortDirection: 'asc' | 'desc' = 'asc';
 
-	function handleSort(field: 'symbol' | 'bid' | 'ask' | 'last' | 'change' | 'volume') {
+	// Add Field type for table columns
+	type Field = {
+		key: 'symbol' | 'bid' | 'ask' | 'last';
+		label: string;
+		align: 'left' | 'right';
+	};
+
+	// DRY field definitions for table
+	const fields: Field[] = [
+		{ key: 'symbol', label: 'Symbol', align: 'left' },
+		{ key: 'bid', label: 'Bid', align: 'right' },
+		{ key: 'ask', label: 'Ask', align: 'right' },
+		{ key: 'last', label: 'Last', align: 'right' },
+		// Add 'change' and 'volume' if you want those columns back
+	];
+	let sortField: Field['key'] = 'symbol';
+	let sortDirection: 'asc' | 'desc' = 'asc';
+	function handleSort(field: Field['key']) {
 		if (sortField === field) {
 			sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
 		} else {
@@ -111,11 +101,8 @@
 			sortDirection = 'asc';
 		}
 	}
-
-	function getSortIcon(field: 'symbol' | 'bid' | 'ask' | 'last' | 'change' | 'volume') {
-		if (sortField !== field) {
-			return 'lucide:chevrons-up-down';
-		}
+	function getSortIcon(field: Field['key']) {
+		if (sortField !== field) return 'lucide:chevrons-up-down';
 		return sortDirection === 'asc' ? 'lucide:chevron-up' : 'lucide:chevron-down';
 	}
 
@@ -143,14 +130,6 @@
 				aValue = quoteA?.lastPrice || 0;
 				bValue = quoteB?.lastPrice || 0;
 				break;
-			case 'change':
-				aValue = quoteA?.change || 0;
-				bValue = quoteB?.change || 0;
-				break;
-			case 'volume':
-				aValue = quoteA?.volume || 0;
-				bValue = quoteB?.volume || 0;
-				break;
 			default:
 				return 0;
 		}
@@ -163,6 +142,19 @@
 				: (bValue as number) - (aValue as number);
 		}
 	});
+
+	// Current fields we want to show, per the spec.
+	const priceFields = [
+		{ key: 'bid', label: 'Bid' },
+		{ key: 'ask', label: 'Ask' },
+		{ key: 'last', label: 'Last' }
+	];
+
+	function renderPriceCell(label: string, price: number | undefined, symbol: string) {
+		return price !== undefined
+			? `<span aria-label="${label} price for ${symbol}: ${formatPrice(price)}">${formatPrice(price)}</span>`
+			: `<span class="text-gray-400" aria-label="No ${label.toLowerCase()} price available for ${symbol}">--</span>`;
+	}
 </script>
 
 <div class="overflow-x-auto">
@@ -172,110 +164,30 @@
 	>
 		<thead class="bg-gray-50">
 			<tr>
-				<th
-					scope="col"
-					class="px-6 py-3 text-left text-xs font-medium tracking-wider text-gray-500 uppercase"
-					aria-sort={sortField === 'symbol'
-						? sortDirection === 'asc'
-							? 'ascending'
-							: 'descending'
-						: 'none'}
-				>
-					<button
-						on:click={() => handleSort('symbol')}
-						class="flex items-center space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by symbol {sortField === 'symbol' && sortDirection === 'asc'
-							? 'descending'
-							: 'ascending'}"
+				{#each fields as field}
+					<th
+						scope="col"
+						class="px-6 py-3 text-{field.align} text-xs font-medium tracking-wider text-gray-500 uppercase"
+						aria-sort={sortField === field.key ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
 					>
-						<span>Symbol</span>
-						<Icon
-							icon={getSortIcon('symbol')}
-							size="w-3 h-3"
-							className={sortField === 'symbol' ? 'text-indigo-600' : 'text-gray-400'}
-							ariaHidden={true}
-						/>
-					</button>
-				</th>
-				<th
-					scope="col"
-					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
-					aria-sort={sortField === 'bid'
-						? sortDirection === 'asc'
-							? 'ascending'
-							: 'descending'
-						: 'none'}
-				>
-					<button
-						on:click={() => handleSort('bid')}
-						class="ml-auto flex items-center justify-end space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by bid price {sortField === 'bid' && sortDirection === 'asc'
-							? 'descending'
-							: 'ascending'}"
-					>
-						<span>Bid</span>
-						<Icon
-							icon={getSortIcon('bid')}
-							size="w-3 h-3"
-							className={sortField === 'bid' ? 'text-indigo-600' : 'text-gray-400'}
-							ariaHidden={true}
-						/>
-					</button>
-				</th>
-				<th
-					scope="col"
-					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
-					aria-sort={sortField === 'ask'
-						? sortDirection === 'asc'
-							? 'ascending'
-							: 'descending'
-						: 'none'}
-				>
-					<button
-						on:click={() => handleSort('ask')}
-						class="ml-auto flex items-center justify-end space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by ask price {sortField === 'ask' && sortDirection === 'asc'
-							? 'descending'
-							: 'ascending'}"
-					>
-						<span>Ask</span>
-						<Icon
-							icon={getSortIcon('ask')}
-							size="w-3 h-3"
-							className={sortField === 'ask' ? 'text-indigo-600' : 'text-gray-400'}
-							ariaHidden={true}
-						/>
-					</button>
-				</th>
-				<th
-					scope="col"
-					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
-					aria-sort={sortField === 'last'
-						? sortDirection === 'asc'
-							? 'ascending'
-							: 'descending'
-						: 'none'}
-				>
-					<button
-						on:click={() => handleSort('last')}
-						class="ml-auto flex items-center justify-end space-x-1 transition-colors hover:text-gray-700"
-						aria-label="Sort by last price {sortField === 'last' && sortDirection === 'asc'
-							? 'descending'
-							: 'ascending'}"
-					>
-						<span>Last</span>
-						<Icon
-							icon={getSortIcon('last')}
-							size="w-3 h-3"
-							className={sortField === 'last' ? 'text-indigo-600' : 'text-gray-400'}
-							ariaHidden={true}
-						/>
-					</button>
-				</th>
-				<th
-					scope="col"
-					class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase"
-				>
+						<Button
+							variant="ghost"
+							size="sm"
+							on:click={() => handleSort(field.key)}
+							class="{field.align === 'right' ? 'ml-auto flex items-center justify-end' : 'flex items-center'}"
+							aria-label={`Sort by ${field.label.toLowerCase()} ${sortField === field.key && sortDirection === 'asc' ? 'descending' : 'ascending'}`}
+						>
+							<span>{field.label}</span>
+							<Icon
+								icon={getSortIcon(field.key)}
+								size="w-3 h-3"
+								className={sortField === field.key ? 'text-indigo-600' : 'text-gray-400'}
+								ariaHidden={true}
+							/>
+						</Button>
+					</th>
+				{/each}
+				<th class="px-6 py-3 text-right text-xs font-medium tracking-wider text-gray-500 uppercase">
 					<span class="sr-only">Actions</span>
 					Actions
 				</th>
@@ -285,62 +197,38 @@
 			{#each sortedSymbols as symbol (symbol)}
 				{@const quote = $debouncedQuotes.get(symbol)}
 				<tr class="hover:bg-gray-50">
-					<td class="px-6 py-4 whitespace-nowrap">
-						<button
+					<td class="px-6 py-4 text-sm font-medium whitespace-nowrap text-gray-900">
+						<Button
+							variant="ghost"
+							size="sm"
 							on:click={() => handleSymbolClick(symbol)}
-							class="cursor-pointer text-sm font-medium text-indigo-600 hover:text-indigo-900"
-							aria-label="View details for {symbol}"
+							class="text-indigo-600 hover:text-indigo-900"
+							aria-label={`View details for ${symbol}`}
 						>
 							{symbol}
-						</button>
+						</Button>
 					</td>
-					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
-						{#if quote}
-							<span aria-label="Bid price for {symbol}: {formatPrice(quote.bidPrice)}">
-								{formatPrice(quote.bidPrice)}
-							</span>
-						{:else}
-							<span class="text-gray-400" aria-label="No bid price available for {symbol}">--</span>
-						{/if}
-					</td>
-					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
-						{#if quote}
-							<span aria-label="Ask price for {symbol}: {formatPrice(quote.askPrice)}">
-								{formatPrice(quote.askPrice)}
-							</span>
-						{:else}
-							<span class="text-gray-400" aria-label="No ask price available for {symbol}">--</span>
-						{/if}
-					</td>
-					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
-						{#if quote}
-							<span aria-label="Last price for {symbol}: {formatPrice(quote.lastPrice)}">
-								{formatPrice(quote.lastPrice)}
-							</span>
-						{:else}
-							<span class="text-gray-400" aria-label="No last price available for {symbol}">--</span
-							>
-						{/if}
-					</td>
+					{#each priceFields as field}
+						<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap text-gray-900">
+							{@html renderPriceCell(field.label, quote ? quote[`${field.key}Price`] : undefined, symbol)}
+						</td>
+					{/each}
 					<td class="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-						<button
+						<Button
+							variant="ghost"
+							size="sm"
 							on:click={() => handleRemoveSymbol(symbol)}
 							disabled={removingSymbol === symbol}
-							class="text-red-600 hover:text-red-900 disabled:cursor-not-allowed disabled:opacity-50"
-							aria-label="Remove {symbol} from watchlist"
+							loading={removingSymbol === symbol}
+							class="text-red-600 hover:text-red-900"
+							aria-label={`Remove ${symbol} from watchlist`}
 						>
 							{#if removingSymbol === symbol}
-								<Icon
-									icon="lucide:loader-2"
-									size="w-4 h-4"
-									className="animate-spin"
-									ariaHidden={true}
-								/>
 								<span class="sr-only">Removing {symbol}...</span>
 							{:else}
 								<Icon icon="lucide:x" size="w-4 h-4" ariaHidden={true} />
 							{/if}
-						</button>
+						</Button>
 					</td>
 				</tr>
 			{/each}

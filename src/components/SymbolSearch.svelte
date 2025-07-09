@@ -2,6 +2,7 @@
 	import { marketDataAPI } from '$lib/api/market-data';
 	import { createEventDispatcher } from 'svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import Button from '$lib/components/Button.svelte';
 
 	export let placeholder = 'Search symbols...';
 	export let disabled = false;
@@ -121,18 +122,18 @@
 			</div>
 		{:else if query}
 			<div class="absolute inset-y-0 right-0 flex items-center pr-3">
-				<button
-					type="button"
+				<Button
+					variant="ghost"
+					size="sm"
 					on:click={() => {
 						query = '';
 						results = [];
 						showResults = false;
 					}}
-					class="text-gray-400 hover:text-gray-600"
 					aria-label="Clear search"
 				>
 					<Icon icon="lucide:x" size="w-5 h-5" ariaHidden={true} />
-				</button>
+				</Button>
 			</div>
 		{/if}
 	</div>

@@ -4,10 +4,13 @@
 	import { watchlistsStore } from '$lib/stores/watchlistsStore';
 	import SymbolSearch from './SymbolSearch.svelte';
 	import Icon from '$lib/components/Icon.svelte';
+	import { useCloseOnOutsideOrEscape } from '$lib/utils';
+	import Button from '$lib/components/Button.svelte';
 
 	export let watchlistName: string;
 	export let isOpen = false;
 	export let onClose: () => void = () => {};
+	export let buttonRef: HTMLElement | null = null;
 
 	const dispatch = createEventDispatcher<{ close: void }>();
 
@@ -40,35 +43,15 @@
 		}
 	}
 
-	function handleClickOutside(event: MouseEvent) {
-		if (!browser) return;
-		const target = event.target as HTMLElement;
-		if (!target.closest('.add-symbol-dropdown')) {
-			handleClose();
-		}
-	}
-
-	function handleKeydown(event: KeyboardEvent) {
-		if (!browser) return;
-		if (event.key === 'Escape') {
-			handleClose();
-		}
-	}
-
-	// Attach/detach listeners only when open.
-	$: if (isOpen && browser) {
-		setTimeout(() => {
-			document.addEventListener('click', handleClickOutside);
-		}, 100);
-		window.addEventListener('keydown', handleKeydown);
-	} else if (browser) {
-		document.removeEventListener('click', handleClickOutside);
-		window.removeEventListener('keydown', handleKeydown);
+	let dropdownRef: HTMLElement | null = null;
+	$: if (isOpen && browser && dropdownRef) {
+		useCloseOnOutsideOrEscape(dropdownRef, handleClose, buttonRef);
 	}
 </script>
 
 {#if isOpen}
 	<div
+		bind:this={dropdownRef}
 		class="add-symbol-dropdown absolute right-0 z-50 mt-2 w-96 rounded-lg border border-gray-200 bg-white shadow-lg"
 		style="min-width: 384px;"
 		role="dialog"
@@ -93,14 +76,15 @@
 						</p>
 					</div>
 				</div>
-				<button
+				<Button
+					variant="ghost"
+					size="sm"
 					on:click={handleClose}
 					disabled={isLoading}
-					class="text-gray-400 hover:text-gray-600 disabled:opacity-50"
 					aria-label="Close dialog"
 				>
 					<Icon icon="lucide:x" size="w-5 h-5" ariaHidden={true} />
-				</button>
+				</Button>
 			</div>
 
 			<div class="mb-4">

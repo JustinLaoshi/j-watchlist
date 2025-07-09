@@ -6,7 +6,7 @@ import {
 	type CandleData
 } from '$lib/api/market-data';
 import { sessionStore } from './sessionStore';
-import { allSymbols } from './watchlistsStore';
+import { selectedWatchlist } from './watchlistsStore';
 
 export interface MarketDataState {
 	quotes: Map<string, SymbolQuote>;
@@ -186,13 +186,6 @@ const createMarketDataStore = () => {
 			update((state) => ({ ...state, isStreaming: false }));
 		},
 
-		// Update streaming symbols.
-		updateStreamingSymbols(symbols: string[]) {
-			if (stream) {
-				stream.updateSymbols(symbols);
-			}
-		},
-
 		// Start candle streaming for a specific symbol.
 		async startCandleStreaming(symbol: string, period: string = '1m') {
 			if (!stream) {
@@ -245,25 +238,25 @@ const createMarketDataStore = () => {
 
 export const marketDataStore = createMarketDataStore();
 
-// Derived store for quotes as array.
-export const quotesArray = derived(marketDataStore, ($marketDataStore) => {
-	return Array.from($marketDataStore.quotes.values());
+// Derived store for just the selected watchlist's symbols
+export const selectedSymbols = derived(selectedWatchlist, ($selectedWatchlist) => {
+    return $selectedWatchlist ? $selectedWatchlist.symbols : [];
 });
 
-// Auto-load quotes when symbols change.
-allSymbols.subscribe((symbols) => {
-	if (symbols.length > 0) {
-		marketDataStore.loadQuotes(symbols);
-	}
+// Auto-load quotes when selected watchlist's symbols change
+selectedSymbols.subscribe((symbols) => {
+    if (symbols.length > 0) {
+        marketDataStore.loadQuotes(symbols);
+    }
 });
 
-// Auto-start streaming when symbols change.
-allSymbols.subscribe((symbols) => {
-	if (symbols.length > 0) {
-		marketDataStore.startStreaming(symbols).catch((error) => {
-			console.error('Failed to start streaming:', error);
-		});
-	} else {
-		marketDataStore.stopStreaming();
-	}
+// Auto-start streaming when selected watchlist's symbols change
+selectedSymbols.subscribe((symbols) => {
+    if (symbols.length > 0) {
+        marketDataStore.startStreaming(symbols).catch((error) => {
+            console.error('Failed to start streaming:', error);
+        });
+    } else {
+        marketDataStore.stopStreaming();
+    }
 });

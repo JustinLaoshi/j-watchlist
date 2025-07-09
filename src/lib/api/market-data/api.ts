@@ -27,16 +27,6 @@ const transformQuoteData = (quote: any): SymbolQuote => {
 	};
 };
 
-// Helper function to transform candle data.
-const transformCandleData = (candle: any): CandleData => ({
-	timestamp: candle.timestamp,
-	open: candle.open,
-	high: candle.high,
-	low: candle.low,
-	close: candle.close,
-	volume: candle.volume
-});
-
 export const marketDataAPI = {
 	async getQuotes(symbols: string[]): Promise<SymbolQuote[]> {
 		const token = localStorage.getItem('authToken');
@@ -85,7 +75,7 @@ export const marketDataAPI = {
 			}
 
 			const data: TastytradeResponse<{ items: any[] }> = await response.json();
-			return data.data.items.map(transformCandleData);
+			return data.data.items;
 		} catch (error) {
 			console.error('Failed to fetch candles:', error);
 			throw new Error('Failed to fetch candles due to CORS or network error');
@@ -96,30 +86,13 @@ export const marketDataAPI = {
 		const token = localStorage.getItem('authToken');
 		if (!token) throw new Error('Not authenticated');
 
-		const endpoints = [
-			`${API_BASE_URL}/symbols/search/${encodeURIComponent(query)}`,
-			`${API_BASE_URL}/instruments?search=${encodeURIComponent(query)}`,
-			`${API_BASE_URL}/symbols?search=${encodeURIComponent(query)}`,
-			`${API_BASE_URL}/equities?search=${encodeURIComponent(query)}`
-		];
-
-		let response: Response;
-		let workingEndpoint = '';
-
-		// Try endpoints until one works.
-		for (const endpoint of endpoints) {
-			response = await fetch(endpoint, { headers: getAuthHeaders(token) });
-			if (response.ok) {
-				workingEndpoint = endpoint;
-				break;
-			}
+		const endpoint = `${API_BASE_URL}/symbols/search/${encodeURIComponent(query)}`;
+		const response = await fetch(endpoint, { headers: getAuthHeaders(token) });
+		if (!response.ok) {
+			await handleApiError(response, 'Failed to search symbols');
 		}
 
-		if (!response!.ok) {
-			await handleApiError(response!, 'Failed to search symbols');
-		}
-
-		const data = await response!.json();
+		const data = await response.json();
 		const items = extractItemsFromResponse(data);
 
 		return items.map((instrument: any) => ({

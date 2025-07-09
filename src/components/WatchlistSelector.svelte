@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import Icon from '$lib/components/Icon.svelte';
 	import type { Watchlist } from '$lib/api/watchlists';
+	import Button from '$lib/components/Button.svelte';
 
 	export let watchlists: Watchlist[] = [];
 	export let selectedWatchlistName: string | null = null;
@@ -70,8 +71,8 @@
 <svelte:window on:keydown={handleKeydown} />
 
 <div class="watchlist-selector relative">
-	<button
-		type="button"
+	<Button
+		unstyled={true}
 		on:click={handleToggle}
 		class="relative w-64 cursor-default rounded-md border border-gray-300 bg-white py-2 pr-10 pl-3 text-left shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none sm:text-sm"
 		aria-haspopup="listbox"
@@ -99,7 +100,7 @@
 				ariaHidden={true}
 			/>
 		</span>
-	</button>
+	</Button>
 
 	{#if isOpen}
 		<div
@@ -130,13 +131,10 @@
 			<!-- Watchlist options -->
 			{#if sortedWatchlists.length > 0}
 				{#each sortedWatchlists as watchlist, index}
-					<button
-						type="button"
+					<Button
+						unstyled={true}
 						on:click={() => handleSelect(watchlist.name)}
-						class="w-full px-3 py-2 text-left text-sm hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none {watchlist.name ===
-						selectedWatchlistName
-							? 'bg-indigo-100 text-indigo-900'
-							: 'text-gray-900'}"
+						class="w-full px-3 py-2 text-left text-sm hover:bg-indigo-50 focus:bg-indigo-50 focus:outline-none {watchlist.name === selectedWatchlistName ? 'bg-indigo-100 text-indigo-900' : 'text-gray-900'}"
 						role="option"
 						aria-selected={watchlist.name === selectedWatchlistName}
 					>
@@ -146,7 +144,7 @@
 								{watchlist.symbols.length} symbols
 							</span>
 						</div>
-					</button>
+					</Button>
 				{/each}
 			{:else}
 				<div class="px-3 py-2 text-sm text-gray-500" role="status" aria-live="polite">

@@ -8,6 +8,8 @@
 
 	onMount(async () => {
 		// @ts-expect-error: No types for plotly.js-dist.
+		// I was not able to import Plotly at the top level so I used this async
+		// import as a workaround.
 		const Plotly = (await import('plotly.js-dist')).default;
 		Plotly.newPlot(
 			chartDiv,

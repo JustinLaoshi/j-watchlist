@@ -2,9 +2,9 @@
 	import { page } from '$app/stores';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { formatPrice, formatChange } from '$lib/utils';
 	import { sessionStore } from '$lib/stores/sessionStore';
 	import { marketDataStore } from '$lib/stores/marketDataStore';
-	import { watchlistsStore } from '$lib/stores/watchlistsStore';
 	import Icon from '$lib/components/Icon.svelte';
 	import { MarketDataStream } from '$lib/api/market-data/streaming';
 	import { getPolygonCandles } from '$lib/api/market-data/api';
@@ -104,20 +104,6 @@
 			isLoading = false;
 		}
 	});
-
-	function formatPrice(price: number): string {
-		return new Intl.NumberFormat('en-US', {
-			style: 'currency',
-			currency: 'USD',
-			minimumFractionDigits: 2,
-			maximumFractionDigits: 2
-		}).format(price);
-	}
-
-	function formatChange(change: number, changePercent: number): string {
-		const sign = change >= 0 ? '+' : '';
-		return `${sign}${formatPrice(change)} (${sign}${changePercent.toFixed(2)}%)`;
-	}
 
 	function goBack() {
 		// Navigate back to watchlists page, preserving the selected watchlist.

@@ -189,15 +189,6 @@ const createWatchlistsStore = () => {
 			update((state) => ({ ...state, error: null }));
 		},
 
-		// Get all symbols from all watchlists.
-		getAllSymbols(): string[] {
-			let symbols: string[] = [];
-			subscribe((state) => {
-				symbols = state.watchlists.flatMap((wl) => wl.symbols);
-			})();
-			return [...new Set(symbols)]; // Remove duplicates.
-		},
-
 		// Get selected watchlist.
 		getSelectedWatchlist(): Watchlist | null {
 			let selectedWatchlist: Watchlist | null = null;
@@ -218,9 +209,4 @@ export const selectedWatchlist = derived(watchlistsStore, ($watchlistsStore) => 
 		$watchlistsStore.watchlists.find((wl) => wl.name === $watchlistsStore.selectedWatchlistName) ||
 		null
 	);
-});
-
-export const allSymbols = derived(watchlistsStore, ($watchlistsStore) => {
-	const symbols = $watchlistsStore.watchlists.flatMap((wl) => wl.symbols);
-	return [...new Set(symbols)]; // Remove duplicates.
 });

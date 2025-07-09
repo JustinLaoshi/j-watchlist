@@ -3,6 +3,7 @@
 	import { browser } from '$app/environment';
 	import { watchlistsStore } from '$lib/stores/watchlistsStore';
 	import Icon from '$lib/components/Icon.svelte';
+	import Button from '$lib/components/Button.svelte';
 
 	export let isOpen = false;
 
@@ -97,14 +98,6 @@
 						</p>
 					</div>
 				</div>
-				<button
-					on:click={handleClose}
-					disabled={isLoading}
-					class="text-gray-400 hover:text-gray-600 disabled:opacity-50"
-					aria-label="Close dialog"
-				>
-					<Icon icon="lucide:x" size="w-5 h-5" ariaHidden={true} />
-				</button>
 			</div>
 
 			<form on:submit|preventDefault={handleSubmit} class="space-y-4">
@@ -151,32 +144,26 @@
 				{/if}
 
 				<div class="flex justify-end space-x-3">
-					<button
-						type="button"
+					<Button
+						variant="secondary"
 						on:click={handleClose}
 						disabled={isLoading}
-						class="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 					>
 						Cancel
-					</button>
-					<button
+					</Button>
+					<Button
 						type="submit"
+						variant="primary"
+						loading={isLoading}
 						disabled={isLoading}
-						class="inline-flex items-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
 						aria-describedby={error ? 'watchlist-error' : undefined}
 					>
 						{#if isLoading}
-							<Icon
-								icon="lucide:loader-2"
-								size="w-4 h-4"
-								className="animate-spin -ml-1 mr-2"
-								ariaHidden={true}
-							/>
 							<span aria-live="polite">Creating...</span>
 						{:else}
 							Create Watchlist
 						{/if}
-					</button>
+					</Button>
 				</div>
 			</form>
 		</div>

@@ -477,39 +477,6 @@ export class MarketDataStream {
 		}
 	}
 
-	async updateSymbols(symbols: string[]) {
-		if (!this.ws || !this.isConnected) return;
-
-		const newSymbols = new Set(symbols);
-		const symbolsToAdd = symbols.filter((s) => !this.subscribedSymbols.has(s));
-		const symbolsToRemove = Array.from(this.subscribedSymbols).filter((s) => !newSymbols.has(s));
-
-		// Remove old symbols from subscription but preserve their data.
-		if (symbolsToRemove.length > 0) {
-			const streamerSymbols = await this.getStreamerSymbols(symbolsToRemove);
-			const removeSubscription: DXLinkFeedSubscription = {
-				type: 'FEED_SUBSCRIPTION',
-				channel: this.channelId,
-				remove: streamerSymbols.flatMap((symbol) => [
-					{ type: 'Trade', symbol },
-					{ type: 'Quote', symbol },
-					{ type: 'Profile', symbol },
-					{ type: 'Summary', symbol }
-				])
-			};
-			this.sendMessage(removeSubscription);
-
-			// Note: We don't clear symbolData here to preserve state for when symbols are re-added.
-		}
-
-		// Add new symbols.
-		if (symbolsToAdd.length > 0) {
-			await this.subscribeToSymbols(symbolsToAdd);
-		}
-
-		this.subscribedSymbols = newSymbols;
-	}
-
 	// Initialize symbol data from existing quotes.
 	initializeSymbolData(symbol: string, lastPrice: number, volume: number = 0) {
 		this.symbolData.set(symbol, {
